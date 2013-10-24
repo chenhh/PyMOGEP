@@ -1,82 +1,85 @@
 #-*-coding:utf-8-*-
 '''
-Common trigonometric functions:
-    - (SIN ) sin_op:         math.sin(x)
-    - (COS ) cos_op:       math.cos(x)
-    - (TAN ) tan_op:      math.tan(x)
-    - (CSC ) csc_op:     1 / math.sin(x)
-    - (SEC ) sec_op:       1 / math.cos(x)
-    - (COT ) cot_op:    1 / math.tan(x)
-    - (ASIN) asin_op:      math.asin(x)
-    - (ACOS) acos_op:    math.acos(x)
-    - (ATAN) atan_op:   math.atan(x)
-    - (ACSC) acsc_op:  1 / math.asin(x)
-    - (ASEC) asec_op:    1 / math.acos(x)
-    - (ACOT) acot_op: 1 / math.atan(x)
-
-Note:
-使用lambda為算式，會造成物件無法pickle,而無法做multi processing
-所以改用def function
+@author: Hung-Hsin Chen
+@mail: chenhh@par.cse.nsysu.edu.tw
+@license: GPLv2
 '''
 
-from PyMOGEP.functions import symbol
-import math
+from PyMOGEP.decorator import symbol
+import numpy as np
 
+__all__ = [op_sin, op_cos, op_tan, op_csc, op_sec, op_cot,
+           op_arcsin, op_arccos, op_arctan, op_arccsc, op_arcsec, op_arccot,
+           op_sinh, op_cosh, op_tanh, op_csch, op_sech, op_coth]
 
-__all__ = 'TRIGONOMETRY_ALL', 'TRIGONOMETRY_ARITY_1'
+@symbol('SIN')
+def op_sin(x):
+    return np.sin(x)
 
-def sin(x):
-    return math.sin(x)
+@symbol('COS')
+def op_cos(x):
+    return np.cos(x)
 
-def cos(x):
-    return math.cos(x)
+@symbol('TAN')
+def op_tan(x):
+    return np.tan(x)
 
-def tan(x):
-    return math.tan(x)
+@symbol('CSC')
+def op_csc(x):
+    return 1./np.sin(x)
 
-def csc(x):
-    return 1./math.sin(x)
+@symbol('SEC')
+def op_sec(x):
+    return 1./np.cos(x)
 
-def sec(x):
-    return 1./math.cos(x)
+@symbol('COT')
+def op_cot(x):
+    return 1./np.tan(x)
 
-def cot(x):
-    return 1./math.tan(x)
+@symbol('ASIN')
+def op_arcsin(x):
+    return np.asin(x)
 
-def arcsin(x):
-    return math.asin(x)
+@symbol('ACOS')
+def op_arccos(x):
+    return np.acos(x)
 
-def arccos(x):
-    return math.acos(x)
+@symbol('ATAN')
+def op_arctan(x):
+    return np.atan(x)
 
-def arctan(x):
-    return math.atan(x)
+@symbol('ACSC')
+def op_arccsc(x):
+    return 1./np.asin(1)
 
-def arccsc(x):
-    return 1./math.asin(1)
+@symbol('ASEC')
+def op_arcsec(x):
+    return 1./np.acos(1)
 
-def arcsec(x):
-    return 1./math.acos(1)
+@symbol('ACOT')
+def op_arccot(x):
+    return 1./np.atan(x)
 
-def arccot(x):
-    return 1./math.atan(x)
+@symbol('SINH')
+def op_sinh(x):
+    return np.sinh(x)
 
+@symbol('COSH')
+def op_cosh(x):
+    return np.cosh(x)
 
-sin_op = symbol('SIN' )(sin)
-cos_op = symbol('COS' )(cos)
-tan_op = symbol('TAN' )(tan)
-csc_op = symbol('CSC' )(csc)
-sec_op = symbol('SEC' )(sec)
-cot_op = symbol('COT' )(cot)
-asin_op = symbol('ASIN')(arcsin)
-acos_op = symbol('ACOS')(arccos)
-atan_op = symbol('ATAN')(arctan)
-acsc_op = symbol('ACSC')(arccsc)
-asec_op = symbol('ASEC')(arcsec)
-acot_op = symbol('ACOT')(arccot)
+@symbol('TANH')
+def op_tanh(x):
+    return np.tanh(x)
 
-TRIGONOMETRY_ARITY_1 = sin_op, cos_op, tan_op, csc_op, \
-                       sec_op, cot_op, asin_op, acos_op, \
-                       atan_op, acsc_op, asec_op, \
-                       acot_op
-TRIGONOMETRY_ALL = TRIGONOMETRY_ARITY_1
+@symbol('CSCH')
+def op_csch(x):
+    return 1./np.sin(x)
+
+@symbol('SECH')
+def op_sech(x):
+    return 1./np.cosh(x)
+
+@symbol('COTH')
+def op_coth(x):
+    return 1./np.tanh(x)

@@ -1,39 +1,28 @@
 #-*-coding:utf-8-*-
 '''
-Common rounding functions:
-    - (FLOOR) floor_op: math.floor(x)
-    - (CEIL ) ceil_op:  math.ceil(x)
-    - (ROUND) round_op: round(x)
-    - (ABS  ) abs_op:   abs(x)
-Note:
-使用lambda為算式，會造成物件無法pickle,而無法做multi processing
-所以改用def function
+@author: Hung-Hsin Chen
+@mail: chenhh@par.cse.nsysu.edu.tw
+@license: GPLv2
 '''
 
-from PyMOGEP.functions import symbol
-import math
+from PyMOGEP.decorator import symbol
+import numpy as np
 
+__all__ = [op_floor, op_ceil, op_round, op_abs]
 
-__all__ = 'ROUNDING_ALL', 'ROUNDING_ARITY_1'
+@symbol('FLOOR')
+def op_floor(x):
+    return np.floor(x)
 
-def floor(x):
-    return math.floor(x)
+@symbol('CEIL')
+def op_ceil(x):
+    return np.ceil(x)
 
-def ceil(x):
-    return math.ceil(x)
+@symbol('ROUND')
+def op_round(x):
+    return np.round(x)
 
-def roundop(x):
-    return round(x)
-
-def absop(x):
+@symbol('ABS')
+def op_abs(x):
     return abs(x)
 
-
-floor_op = symbol('FLOOR')(floor)
-ceil_op  = symbol('CEIL' )(ceil)
-round_op = symbol('ROUND')(roundop)
-abs_op   = symbol('ABS'  )(absop)
-
-
-ROUNDING_ARITY_1 = floor_op, ceil_op, round_op, abs_op
-ROUNDING_ALL = ROUNDING_ARITY_1

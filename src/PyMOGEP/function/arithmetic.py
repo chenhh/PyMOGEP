@@ -7,25 +7,26 @@
 
 from PyMOGEP.decorator import symbol
 
+__all__ = [op_add, op_substract, op_multiply, op_divide, op_modulus]
 
 @symbol('+')
-def add(x, y):
+def op_add(x, y):
     return x + y
 
 @symbol('-')
-def substract(x, y):
+def op_substract(x, y):
     return x - y
 
 @symbol('*')
-def multiply(x, y):
+def op_multiply(x, y):
     return x * y
 
 @symbol('/')
-def divide(x, y):
+def op_divide(x, y):
     return float(x) / y
 
 @symbol('%')
-def modulus(x, y):
+def op_modulus(x, y):
     return x % y
  
-__all__ = add, substract, multiply, divide, modulus
+

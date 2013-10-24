@@ -1,39 +1,28 @@
 #-*-coding:utf-8-*-
 '''
-Common constant functions:
-    - (0) zero_op: 0
-    - (1) one_op:  1
-    - (P) pi_op:   math.pi
-    - (E) e_op:    math.e
-
-Note:
-使用lambda為算式，會造成物件無法pickle,而無法做multi processing
-所以改用def function
+@author: Hung-Hsin Chen
+@mail: chenhh@par.cse.nsysu.edu.tw
+@license: GPLv2
 '''
 
-from PyMOGEP.functions import symbol
-import math
+from PyMOGEP.decorator import symbol
+import numpy as np
 
+__all__ = [op_zero, op_one, op_pi, op_exp]
 
-__all__ = 'CONSTANTS_ALL', 'CONSTANTS_ARITY_0'
-
-def zero():
+@symbol('0')
+def op_zero():
     return 0
 
-def one():
+@symbol('1')
+def op_one():
     return 1
 
-def pi():
-    return math.pi
+@symbol('pi')
+def op_pi():
+    return np.pi
 
-def e():
-    return math.e
+@symbol('e')
+def op_exp():
+    return np.e
 
-zero_op = symbol('0')(zero)
-one_op  = symbol('1')(one)
-pi_op   = symbol('P')(pi)
-e_op    = symbol('E')(e)
-
-
-CONSTANTS_ARITY_0 = zero_op, one_op, pi_op, e_op
-CONSTANTS_ALL = CONSTANTS_ARITY_0
