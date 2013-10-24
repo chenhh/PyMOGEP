@@ -65,7 +65,7 @@ class Gene(object):
                 else:
                     leafs[allele] = [idx,]
          
-        self._leafAlleles = [(key, np.array(val)) 
+        self._leafNodes = [(key, np.array(val)) 
                              for key, val in leafs.items()]          
                     
         
