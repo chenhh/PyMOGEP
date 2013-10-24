@@ -42,7 +42,7 @@ class Gene(object):
         computing number of required alleles for parsing the gene
         '''
         endIdx = 0
-        for idx in xrange(self.alleles.size):
+        for idx in xrange(self.headLength):
             if callable(self.alleles[idx]):
                 endIdx += self.alleles[idx].func_code.co_argcount
             if idx == endIdx:
