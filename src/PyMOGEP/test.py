@@ -30,7 +30,10 @@ def group(alleles):
     arr = [(key, np.asarray(val)) for key, val in leafs.items()]
     print arr
     
+    
+    
 if __name__ == '__main__':
-    alleles = ['x', op_add,  op_pi,  op_add, 'y', 'y','y','y','y','y','y','y']
-    requiredLen(alleles)
-    group(alleles)
+#     alleles = ['x', op_add,  op_pi,  op_add, 'y', 'y','y','y','y','y','y','y']
+#     requiredLen(alleles)
+#     group(alleles)
+    print np.asarray(v for v in xrange(10))

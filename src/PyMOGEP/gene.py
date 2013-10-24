@@ -53,11 +53,12 @@ class Gene(object):
         self.evalLength = endIdx + 1
         self._evalAlleles = self.alleles[:self.evalLength]
         
-    def _aggregrateLeafAlleles(self):
+        
+    def _evalLeafNodes(self):
         ''' 
         the variable in the alleles is string 
-        self._evaluation=[+, +, x, x, x, y ]
-        leafNodes = [('x', [2, 3]), (('y', [5])),...]
+        self._evaluation=[+, +, x, y, x, x ]
+        leafNodes = [('x', [2, 4, 5]), (('y', [3])]
         '''
         leafs = {}
         for idx, allele in enumerate(self._evalAlleles):
@@ -67,8 +68,8 @@ class Gene(object):
                 else:
                     leafs[allele] = [idx,]
          
-        self._leafNodes = [(key, np.array(val)) 
-                             for key, val in leafs.items()]          
+        self._leafNodes = np.array([(key, np.array(val)) 
+                             for key, val in leafs.items()])          
                     
         
     def _evalGene(self, df):
@@ -82,7 +83,7 @@ class Gene(object):
       
     
     @memory
-    def parse(self, gene):
+    def eval(self, df, Dc):
         '''
         E.g.:
         gene = MOKarvaGene()   #call __init__
@@ -95,7 +96,8 @@ class Gene(object):
         @param gene: gene of a Karva gene
         @return: result of evaluating the gene.
         '''
-        self._prepareEvalAttributes(gene)
+        self._evalLength()
+        self._evalLeafNodes()
         
         # Evaluate the gene against gene in reverse
         index = self.codingLength + 1
