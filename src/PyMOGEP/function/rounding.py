@@ -8,7 +8,7 @@
 from PyMOGEP.decorator import symbol
 import numpy as np
 
-__all__ = [op_floor, op_ceil, op_round, op_abs]
+
 
 @symbol('FLOOR')
 def op_floor(x):
@@ -26,3 +26,4 @@ def op_round(x):
 def op_abs(x):
     return abs(x)
 
+__all__ = [op_floor, op_ceil, op_round, op_abs]

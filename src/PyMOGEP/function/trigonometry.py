@@ -8,9 +8,7 @@
 from PyMOGEP.decorator import symbol
 import numpy as np
 
-__all__ = [op_sin, op_cos, op_tan, op_csc, op_sec, op_cot,
-           op_arcsin, op_arccos, op_arctan, op_arccsc, op_arcsec, op_arccot,
-           op_sinh, op_cosh, op_tanh, op_csch, op_sech, op_coth]
+
 
 @symbol('SIN')
 def op_sin(x):
@@ -38,27 +36,27 @@ def op_cot(x):
 
 @symbol('ASIN')
 def op_arcsin(x):
-    return np.asin(x)
+    return np.arcsin(x)
 
 @symbol('ACOS')
 def op_arccos(x):
-    return np.acos(x)
+    return np.arccos(x)
 
 @symbol('ATAN')
 def op_arctan(x):
-    return np.atan(x)
+    return np.arctan(x)
 
 @symbol('ACSC')
 def op_arccsc(x):
-    return 1./np.asin(1)
+    return 1./np.arcsin(x)
 
 @symbol('ASEC')
 def op_arcsec(x):
-    return 1./np.acos(1)
+    return 1./np.arccos(x)
 
 @symbol('ACOT')
 def op_arccot(x):
-    return 1./np.atan(x)
+    return 1./np.arctan(x)
 
 @symbol('SINH')
 def op_sinh(x):
@@ -83,3 +81,7 @@ def op_sech(x):
 @symbol('COTH')
 def op_coth(x):
     return 1./np.tanh(x)
+
+__all__ = [op_sin, op_cos, op_tan, op_csc, op_sec, op_cot,
+           op_arcsin, op_arccos, op_arctan, op_arccsc, op_arcsec, op_arccot,
+           op_sinh, op_cosh, op_tanh, op_csch, op_sech, op_coth]

@@ -31,7 +31,7 @@ class Gene(object):
         self.alleles = alleles
         self.headLength = headLength
     
-        self.evalLength = -1
+        self.evalLength = 0
         self._evalAlleles = None
         self._leafAlleles = None
         self._parseGene()
@@ -41,17 +41,15 @@ class Gene(object):
         the gene is parsed level order way, 
         computing number of required alleles for parsing the gene
         '''
-        idx, pos = 0, 1
-        while pos:
-            next_pos = 0
-            for _ in xrange(pos):
-                # computing the arity if the allele is a function
-                if callable(self.alleles[idx]):
-                    next_pos += self.alleles[idx].func_code.co_argcount
-                idx += 1
-            pos = next_pos
-        self.evalLength = idx - 1
-        self._evalAlleles = self.alleles[:idx]
+        endIdx = 0
+        for idx in xrange(self.alleles.size):
+            if callable(self.alleles[idx]):
+                endIdx += self.alleles[idx].func_code.co_argcount
+            if idx == endIdx:
+                break
+        
+        self.evalLength = endIdx + 1
+        self._evalAlleles = self.alleles[:self.evalLength]
         
     def _aggregrateLeafAlleles(self):
         # the variable in the alleles is string 
