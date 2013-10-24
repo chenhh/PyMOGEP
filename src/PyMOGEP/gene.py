@@ -33,7 +33,7 @@ class Gene(object):
     
         self.evalLength = 0
         self._evalAlleles = None
-        self._leafAlleles = None
+        self._leafNodes = None
         self._parseGene()
     
     def _evalLength(self):
@@ -52,20 +52,22 @@ class Gene(object):
         self._evalAlleles = self.alleles[:self.evalLength]
         
     def _aggregrateLeafAlleles(self):
-        # the variable in the alleles is string 
-        # self._evaluation=[+, +, x, x, x, y ]
-        # leafs = [(2,x), (3, x), (4, x), (5, y)]
-        # aggregate the leaf nodes, (variable, [locations])
-        # terminals = [('x', [2, 3]), (('y', [5])),...]
-        
-        leafs = np.array([(idx, content) for idx, content in 
-                          enumerate(self._evalAlleles) 
-                          if isinstance(content, str)])
-        
-        self._leafAlleles = [ (key, [idx[0] for idx in value]) for 
-                             key, value in itertools.groupby(
-                            sorted(leafs, key=itemgetter(1)), key=itemgetter(1))
-        ]
+        ''' 
+        the variable in the alleles is string 
+        self._evaluation=[+, +, x, x, x, y ]
+        leafNodes = [('x', [2, 3]), (('y', [5])),...]
+        '''
+        leafs = {}
+        for idx, allele in enumerate(self._evalAlleles):
+            if isinstance(allele, str):
+                if allele in leafs.keys():
+                    leafs[allele].append(idx)
+                else:
+                    leafs[allele] = [idx,]
+         
+        self._leafAlleles = [(key, np.array(val)) 
+                             for key, val in leafs.items()]          
+                    
         
     def _evalGene(self, df):
         '''
