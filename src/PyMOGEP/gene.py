@@ -17,10 +17,11 @@ class Gene(object):
     are linked by the linker function
     '''
 
-    def __init__(self, alleles, headLength):
+    def __init__(self, alleles, headLength, Dc=None):
         '''
         @param alleles: numpy.array, symbol of function and terminal
         @param headLength: integer, head length of the gene
+        @param Dc: None or numpy.array, numerical constants
         
         @ivar evalLength: integer, number of alleles used after evaluating the gene
         @ivar _evalAlleles: numpy.array,  partial elements of the alleles
@@ -30,7 +31,8 @@ class Gene(object):
         '''
         self.alleles = alleles
         self.headLength = headLength
-    
+        self.Dc = Dc
+        
         self.evalLength = 0
         self._evalAlleles = None
         self._leafNodes = None
