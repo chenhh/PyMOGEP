@@ -35,7 +35,7 @@ class Gene(object):
         self._legalForm()
             
         self.evalRepr = None
-    
+        self.evalResultArr = None
     
     def _legalForm(self):
         '''check if the head of gene is legal'''
@@ -63,7 +63,6 @@ class Gene(object):
         self._evalAlleles = self.alleles[:self.evalLength]
         
 
-#     @memory
     def eval(self, df):
         '''
         Evaluates the gene against gene from argument.
@@ -97,7 +96,8 @@ class Gene(object):
                 self._evalAlleles[jdx] = allele(*arrs)
                 idx -= arity
 
-        return self._evalAlleles[0]
+        self.evalResultArr = self._evalAlleles[0] 
+        return self.evalResultArr
     
                  
     def modify(self, changes):
