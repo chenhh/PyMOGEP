@@ -8,8 +8,6 @@ C. Ferreira, "Gene Expression Programming: A New Adaptive Algorithm for
 Solving Problems.," Complex Systems, vol. 13, pp. 87-129, 2001.
 '''
 import numpy as np
-import itertools
-from operator import itemgetter
 from PyMOGEP.decorator import memory
 
 class Gene(object):
@@ -37,6 +35,7 @@ class Gene(object):
         self._evalAlleles = None
         self._leafNodes = None
         self._parseGene()
+    
     
     def _evalLength(self):
         '''
@@ -66,7 +65,7 @@ class Gene(object):
                 if allele in leafs.keys():
                     leafs[allele].append(idx)
                 else:
-                    leafs[allele] = [idx,]
+                    leafs[allele] = [idx, ]
          
         self._leafNodes = np.array([(key, np.array(val)) 
                              for key, val in leafs.items()])          
