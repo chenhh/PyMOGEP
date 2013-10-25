@@ -10,8 +10,14 @@ multi-objective algorithm: NSGA-II
 
 from time import time
 import numpy as np
+import random
 from PyMOGEP.evolution.linker import defaultLinker
-from PyMOGEP.sort import (DebSort, JensenSort)
+from PyMOGEP.sort import JensenSort
+from PyMOGEP.evolution.selector import binaryTournamentSelection
+from PyMOGEP.evolution.crossover import *
+from PyMOGEP.evolution.mutator import *
+from PyMOGEP.evolution.transposer import *
+from PyMOGEP.evolution.comparison import *
 
 class Population(object):
     '''population of GEP chromosomes'''
@@ -52,7 +58,7 @@ class Population(object):
         self.headLength = headLength
         self.n_genes = n_genes
         self.linker = linker
-        self.__age = 0
+        self._gen = 0
         self.selector = binaryTournamentSelection
         self.verbose = verbose
         
@@ -179,7 +185,7 @@ class Population(object):
         
         return population
     
-    def evolveNSGAII(self):
+    def evolve(self):
         # produce offspring        
         currentOffspring = self.selector(self.population)
         
@@ -217,14 +223,14 @@ class Population(object):
         if self.runStatistics:
             self._updateStats()
  
-    def solve(self, generations):
+    def solve(self, n_generation):
         '''
         Cycles a number of generations. Stops if self.solved()
-        @param generations: # of genrations to give up after
+        @param generation: # of genrations to give up after
         '''
-        for _ in xrange(generations):
+        for _ in xrange(n_generation):
             t1 = time()
-            self.evolveNSGAII()
+            self.evolve()
             if len(self.bestFront) > 0 and all([front.solved for front in self.bestFront]):
                 break
             print self

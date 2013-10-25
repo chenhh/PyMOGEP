@@ -6,6 +6,8 @@
 '''
 import random
 
+__all__ = ['crossoverPairs', 'crossoverOnePoint', 'crossoverTwoPoints', 'crossoverGene']
+
 def crossoverPairs(popSize, crossoverRate):
     '''
     finding out which two chromosomes in the population should do crossover operation
@@ -96,4 +98,4 @@ def crossoverGene(chro1, chro2):
         gene = random.choice(xrange(len(genes1)))
         genes1[gene], genes2[gene] = genes2[gene], genes1[gene]
         return chro1._child(genes1), chro2._child(genes2)
-    
+

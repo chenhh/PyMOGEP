@@ -47,9 +47,20 @@ def testExpression():
     ne.evaluate('a+b-b**2')
     print "ne, %.3f secs"%(time()-t0)
     
+def testRandom():
+    import random
+    n = 100000
+    t0 = time()
+    a = [random.random() for _ in xrange(n)]
+    print "%.3f secs"%(time()-t0)
+    t0 = time()
+    b = np.random.rand(n)
+    print "%.3f secs"%(time()-t0)
+    
 if __name__ == '__main__':
 #     alleles = ['x', op_add,  op_pi,  op_add, 'y', 'y','y','y','y','y','y','y']
 #     requiredLen(alleles)
 #     group(alleles)
 #     print np.asarray(v for v in xrange(10))
-    testExpression()
+#     testExpression()
+    testRandom()

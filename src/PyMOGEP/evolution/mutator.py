@@ -7,6 +7,7 @@
 
 import random
 
+__all__ = ['mutation',]
 
 def mutation(chro, rate):
     '''
@@ -40,3 +41,4 @@ def mutation(chro, rate):
         
     # Create a child of this chro
     return chro._child(genes)
+

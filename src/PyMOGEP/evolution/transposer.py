@@ -6,6 +6,7 @@
 '''
 import random
 
+__all__ = ['invert', 'transposeIS', 'transposeRIS', 'transposeGene']
 
 def invert(chro, inversionRate):
     '''
