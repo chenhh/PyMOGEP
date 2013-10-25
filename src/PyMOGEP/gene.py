@@ -8,6 +8,7 @@ C. Ferreira, "Gene Expression Programming: A New Adaptive Algorithm for
 Solving Problems.," Complex Systems, vol. 13, pp. 87-129, 2001.
 '''
 import copy
+import itertools
 from PyMOGEP.decorator import (memory, cache)
 
 class Gene(object):
@@ -32,9 +33,21 @@ class Gene(object):
         self.evalLength = 0
         self._evalAlleles = None
         self._evalLength()
+        self._legalForm()
+            
         self.evalRepr = None
-        
     
+    
+    def _legalForm(self):
+        '''check if the head of gene is legal'''
+        if self.evalLength == 0:
+            self._evalLength()
+        
+        for allele in self.alleles[self.headLength:]:
+            if callable(allele):
+                raise ValueError('illegal gene.')
+            
+            
     def _evalLength(self):
         '''
         the gene is parsed level order way, 
