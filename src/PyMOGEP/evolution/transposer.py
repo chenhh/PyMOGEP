@@ -3,6 +3,10 @@
 @author: Hung-Hsin Chen
 @mail: chenhh@par.cse.nsysu.edu.tw
 @license: GPLv2
+
+all return type should be list, and 
+each element of the list follows the format 
+(alleleIdx, [new allele1,new allele2,...])
 '''
 import random
 
@@ -30,7 +34,7 @@ def invert(chro, inversionRate):
     
         # Create the new chro
         replacement = list(reversed(genes[idx][start:stop+1]))
-        genes[idx] = genes[idx].derive([(start, replacement)])
+        genes[idx] = genes[idx].derivmodifyart, replacement)])
         return chro._child(genes)
 
 def transposeIS(chro, length, transpositionISRate):
@@ -62,7 +66,7 @@ def transposeIS(chro, length, transpositionISRate):
         # Insert into the target gene's headLength
         replacement = source[start:end][:chro.headLength-offset] + \
                       genes[target][offset:chro.headLength-end+start]
-        genes[target] = genes[target].derive([(offset, replacement)])
+        genes[target] = genes[target].derivmodifyfset, replacement)])
         return chro._child(genes)
 
 def transposeRIS(chro, length, transpositionRISRate):
@@ -94,7 +98,7 @@ def transposeRIS(chro, length, transpositionRISRate):
         
         # Insert into the target gene's headLength at position 0
         replacement   = source[start:end] + genes[target][:chro.headLength+start-end]
-        genes[target] = genes[target].derive([(0, replacement)])
+        genes[target] = genes[target].derivmodify replacement)])
         return chro._child(genes)
 
 def transposeGene(chro, transpositionGeneRate):

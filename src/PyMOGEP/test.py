@@ -54,7 +54,7 @@ def testRandom():
     a = [random.random() for _ in xrange(n)]
     print "%.3f secs"%(time()-t0)
     t0 = time()
-    b = np.random.rand(n)
+    b = [np.random.rand() for _ in xrange(n)]
     print "%.3f secs"%(time()-t0)
     
 if __name__ == '__main__':

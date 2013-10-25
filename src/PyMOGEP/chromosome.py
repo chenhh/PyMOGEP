@@ -179,7 +179,7 @@ class Chromosome(object):
         return chro_str
 
 
-    def _child(self, genes):
+    def newInstance(self, genes):
         '''
         Creates a child chromosome
         @param genes: ordered list of GEP genes

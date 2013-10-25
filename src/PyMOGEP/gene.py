@@ -8,7 +8,6 @@ C. Ferreira, "Gene Expression Programming: A New Adaptive Algorithm for
 Solving Problems.," Complex Systems, vol. 13, pp. 87-129, 2001.
 '''
 import copy
-import itertools
 from PyMOGEP.decorator import (memory, cache)
 
 class Gene(object):
@@ -99,12 +98,12 @@ class Gene(object):
         return self._evalAlleles[0]
     
                  
-    def derive(self, changes):
+    def modify(self, changes):
         '''
         if the changes are the same with alleles of this gene, 
         return this gene, not a copy.
         
-        @param changes, list, (start idx, list of modify alleles)
+        @param changes, list of (start idx, list of modify alleles)
         @return, gene: new gene
         '''
         new = None   # new gene
@@ -147,7 +146,7 @@ class Gene(object):
     @cache
     def __repr__(self):
         '''
-        note: after we derive a new gene, we must update __repr__,
+        note: after we modify a new gene, we must update __repr__,
         else it will show old cache data, not current data.
         
         @return: string, content of gene alleles'''

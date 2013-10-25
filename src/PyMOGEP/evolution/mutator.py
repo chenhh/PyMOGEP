@@ -3,42 +3,43 @@
 @author: Hung-Hsin Chen
 @mail: chenhh@par.cse.nsysu.edu.tw
 @license: GPLv2
+
+all return type should be list, and 
+each element of the list follows the format 
+(alleleIdx, [new allele1,new allele2,...])
 '''
 
 import random
 
 __all__ = ['mutation',]
 
-def mutation(chro, rate):
+def mutation(chro, mutationRate):
     '''
-    Produces a new chro via potential point mutation on each
-    locus.  If nothing changes, the original chro is returned.
+    Produces a new chromosome via potential point mutation on each
+    index.  If nothing changes, the original chromosome is returned.
+    it is multi-points mutation.
     
-    @param chro: class PyMOGEP.chro.Chromosome
-    @param rate: mutation rate per locus
-    @return:     child chro (or self)
+    @param chro: class PyMOGEP.chromosome
+    @param mutationRate, positive float: mutation mutationRate per locus
+    @return: new chromosome (or self)
     '''
     genes = list(chro.genes)
     
-    # Traverse the chro gene by gene, then locus by locus
     for geneIdx, gene in enumerate(chro.genes):
         replacements = []
-        for i, allele in enumerate(gene):
-            # Do we mutate this locus?
-            if random.random() < rate:
-                if i >= chro.headLength:
+        for alleleIdx, allele in enumerate(gene):
+            if random.random() < mutationRate:
+                if alleleIdx >= chro.headLength:
                     newAllele = random.choice(chro.terminals)
                 else:
                     newAllele = random.choice(chro.symbols)
                 
                 # Only use this if the mutation actually did something
                 if newAllele != allele:
-                    replacements.append((i, [newAllele]))
-
-        # If we have actual replacements to make, do them
+                    replacements.append((alleleIdx, [newAllele]))
+                    
         if replacements:
-            genes[geneIdx] = gene.derive(replacements)
+            genes[geneIdx] = gene.modify(replacements)
         
-    # Create a child of this chro
-    return chro._child(genes)
+    return chro.newInstance(genes)
 

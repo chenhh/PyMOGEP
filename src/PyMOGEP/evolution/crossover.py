@@ -3,10 +3,15 @@
 @author: Hung-Hsin Chen
 @mail: chenhh@par.cse.nsysu.edu.tw
 @license: GPLv2
+
+all return type should be list, and 
+each element of the list follows the format 
+(alleleIdx, [new allele1,new allele2,...])
 '''
 import random
 
-__all__ = ['crossoverPairs', 'crossoverOnePoint', 'crossoverTwoPoints', 'crossoverGene']
+__all__ = ['crossoverPairs', 'crossoverOnePoint', 
+           'crossoverTwoPoints', 'crossoverGene']
 
 def crossoverPairs(popSize, crossoverRate):
     '''
@@ -14,42 +19,45 @@ def crossoverPairs(popSize, crossoverRate):
     @param crossoverRate: crossover rate
     @return: ((p1a-index, p1b-index), (p2a-index, p2b-index), ...)
     '''
+    assert 0 < crossoverRate <= 1.0
+    
     if crossoverRate and popSize >= 2:
-    # Choose and shuffle the individuals to participate in crossover
-        orgs = [idx for idx in xrange(1, popSize) if random.random() < crossoverRate]
-        random.shuffle(orgs)
-            
-        # Generate pairs of indexes.  If there is an odd man out, ignore him.
-        for idx in xrange(0, len(orgs), 2):
-            try:
-                yield orgs[idx], orgs[idx+1]
-            except IndexError:
-                pass
+        indices = random.shuffle([idx for idx in xrange(popSize) 
+                   if random.random() < crossoverRate])
+        
+        if len(indices) % 2: 
+            indices = indices[:-1]
+        
+        for idx in xrange(0, len(indices), 2):
+            yield indices[idx], indices[idx+1]
+          
 
 def crossoverOnePoint(chro1, chro2):
         '''
         Produces two children via one-point crossover
-        @param chro1: chro1 chromosome
-        @param chro2: chro2 chromosome
-        @return:      child 1, child 2
+        @param chro1, PyMOGEP.chromosome
+        @param chro2:  PyMOGEP.chromosome
+        @return: child 1, child 2
         '''
         genes1, genes2 = list(chro1.genes), list(chro2.genes)
         
-        # Pick a gene and index to crossover at
-        gene  = random.choice(xrange(len(genes1)))
-        index = random.choice(xrange(len(genes1[gene])))
+        # Pick a geneIdx and alleleIdx for crossover
+        geneIdx  = random.choice(xrange(len(genes1)))
+        alleleIdx = random.choice(xrange(len(genes1[geneIdx])))
         
         # Construct new child genes
-        child1 = genes1[gene].derive([(index, genes2[gene][index:])])
-        child2 = genes2[gene].derive([(index, genes1[gene][index:])])
-        genes1[gene], genes2[gene] = child1, child2
-        return chro1._child(genes1), chro2._child(genes2)
-    
+        child1 = genes1[geneIdx].modify([(alleleIdx, genes2[geneIdx][alleleIdx:])])
+        child2 = genes2[geneIdx].modify([(alleleIdx, genes1[geneIdx][alleleIdx:])])
+        genes1[geneIdx], genes2[geneIdx] = child1, child2
+        
+        return chro1.newInstance(genes1), chro2.newInstance(genes2)
+
+
 def crossoverTwoPoints(chro1, chro2):
         '''
         Produces two children via two-point crossover
-        @param chro1: chro1 chromosome
-        @param chro2: chro2 chromosome
+        @param chro1: PyMOGEP.chromosome
+        @param chro2: PyMOGEP.chromosome
         @return:      child 1, child 2
         '''
         #total number of alleles in chro1 chromosome
@@ -58,44 +66,45 @@ def crossoverTwoPoints(chro1, chro2):
 
         genes1, genes2 = list(chro1.genes), list(chro2.genes)
 
-        # Choose start and stop loci
-        ind1, ind2 = random.sample(xrange(len(chro1)), 2)
-        if ind1 > ind2:
-            ind1, ind2 = ind2, ind1
+        # Choose start and stop index
+        idx1, idx2 = random.sample(xrange(len(chro1)), 2)
+        if idx1 > idx2:
+            idx1, idx2 = idx2, idx1
         
         # Convert these to gene and allele numbers
         geneLength = len(chro1.genes[0])
-        ind1, allele1 = divmod(ind1, geneLength)
-        ind2, allele2 = divmod(ind2, geneLength)
+        idx1, allele1 = divmod(idx1, geneLength)
+        idx2, allele2 = divmod(idx2, geneLength)
 
         # Switch genes in between the modified genes
-        if ind2 - ind1 > 1:
-            start = ind1 + 1
-            genes1[start:ind2], genes2[start:ind2] = \
-                genes2[start:ind2], genes1[start:ind2]
+        if idx2 - idx1 > 1:
+            start = idx1 + 1
+            genes1[start:idx2], genes2[start:idx2] = \
+                genes2[start:idx2], genes1[start:idx2]
         
         # And switch components of the start and stop genes
-        child1 = genes1[ind1].derive([(allele1, genes2[ind1][allele1:])])
-        child2 = genes2[ind1].derive([(allele1, genes1[ind1][allele1:])])
-        genes1[ind1], genes2[ind1] = child1, child2
+        child1 = genes1[idx1].modify([(allele1, genes2[idx1][allele1:])])
+        child2 = genes2[idx1].modify([(allele1, genes1[idx1][allele1:])])
+        genes1[idx1], genes2[idx1] = child1, child2
             
-        child1 = genes1[ind2].derive([(0, genes2[ind2][:allele2])])
-        child2 = genes2[ind2].derive([(0, genes1[ind2][:allele2])])
-        genes1[ind2], genes2[ind2] = child1, child2
+        child1 = genes1[idx2].modify([(0, genes2[idx2][:allele2])])
+        child2 = genes2[idx2].modify([(0, genes1[idx2][:allele2])])
+        genes1[idx2], genes2[idx2] = child1, child2
         
-        return chro1._child(genes1), chro2._child(genes2)
-    
+        return chro1.newInstance(genes1), chro2.newInstance(genes2)
+
+
 def crossoverGene(chro1, chro2):
         '''
-        Produces two children via full gene crossover
-        @param chro1: chro1 chromosome
-        @param chro2: chro2 chromosome
-        @return:      child 1, child 2
+        Produces two children via full geneIdx crossover
+        @param chro1: PyMOGEP.chromosome
+        @param chro2: PyMOGEP.chromosome
+        @return: child 1, child 2
         '''
         genes1, genes2 = list(chro1.genes), list(chro2.genes)
 
-        # Choose a random gene
-        gene = random.choice(xrange(len(genes1)))
-        genes1[gene], genes2[gene] = genes2[gene], genes1[gene]
-        return chro1._child(genes1), chro2._child(genes2)
+        # Choose a random geneIdx
+        geneIdx = random.choice(xrange(len(genes1)))
+        genes1[geneIdx], genes2[geneIdx] = genes2[geneIdx], genes1[geneIdx]
+        return chro1.newInstance(genes1), chro2.newInstance(genes2)
 
