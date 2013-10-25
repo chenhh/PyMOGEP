@@ -2,14 +2,39 @@
 '''
 @author: Hung-Hsin Chen
 @mail: chenhh@par.cse.nsysu.edu.tw
+
+
+K. Deb, A. Pratap, S. Agarwal, and T. Meyarivan, "A fast and elitist multiobjective 
+genetic algorithm: NSGA-II," Evolutionary Computation, IEEE Transactions on, 
+vol. 6, pp. 182-197, 2002.
+
+number of variable: 1
+variables bounds: [-10**3, 10**3]
+objective functions:
+    1. f(x) = x**2
+    2. g(x) = (x-2)**2
+
+optimal solution: x in [0, 2]
 '''
 from PyMOGEP.chromosome import Chromosome
 from PyMOGEP.population import Population
-from PyMOGEP.functions.mathematical.arithmetic import (add_op, subtract_op, 
-    multiply_op, divide_op)
-from PyMOGEP.operator.linkers import sumLinker
+from PyMOGEP.functions.mathematical.arithmetic import *
+from PyMOGEP.operator.linkers import *
 import random
+import pandas as pd
+import numpy as np
 from time import time
+
+
+def generatingData(n_data=1000):
+    func0 = lambda x: x**2
+    func1 = lambda x: (x-2)**2
+    lower, upper = -10**3, 10**3
+    x = (upper-lower) * np.random.random((n_data, 2)) + lower
+    x[:, 0] =func0(x[:, 0])
+    x[:, 1] =func1(x[:, 1])
+    return pd.DataFrame(x, columns=('f1', 'f2')) 
+
 
 class Point(object):
     '''
