@@ -63,8 +63,8 @@ class Gene(object):
         self._evalAlleles = self.alleles[:self.evalLength]
         
 
-    @memory
-    def eval(self, df, Dc):
+#     @memory
+    def eval(self, df):
         '''
         Evaluates the gene against gene from argument.
         if the gene is evaluated once, the result will memory in its 
@@ -76,10 +76,12 @@ class Gene(object):
         @return, numpy.array, results of evaluating the gene.
         '''
         self._evalLength()
-        self._evalLeafNodes()
-        self._evalGene()
+        print self.evalLength
+        print repr(self)
+        print self.evalRepr
         
-        idx = self.evalLength + 1
+        
+        idx = self.evalLength
         for jdx in reversed(xrange(idx)):
             allele = self._evalAlleles[jdx]
 

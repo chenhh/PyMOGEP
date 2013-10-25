@@ -18,117 +18,71 @@ optimal solution: x in [0, 2]
 '''
 from PyMOGEP.chromosome import Chromosome
 from PyMOGEP.population import Population
-from PyMOGEP.functions.mathematical.arithmetic import *
-from PyMOGEP.operator.linkers import *
+from PyMOGEP.function.arithmetic import *
+from PyMOGEP.evolution.linker import *
 import random
 import pandas as pd
 import numpy as np
 from time import time
 
 
-def generatingData(n_data=1000):
+def Dataset(n_data=1000):
     func0 = lambda x: x**2
     func1 = lambda x: (x-2)**2
     lower, upper = -10**3, 10**3
-    x = (upper-lower) * np.random.random((n_data, 2)) + lower
-    x[:, 0] =func0(x[:, 0])
-    x[:, 1] =func1(x[:, 1])
-    return pd.DataFrame(x, columns=('f1', 'f2')) 
+    x = (upper-lower) * np.random.random((n_data)) + lower
+    f1 =func0(x)
+    f2 =func1(x)
+    return pd.DataFrame.from_dict({"x": x, 
+                                   "f1": f1,
+                                   "f2": f2}) 
 
 
-class Point(object):
-    '''
-    Schaffer's study for symbolic regression
-    '''
-    SAMPLE = []
-    SAMPLE_SIZE = 200
-    RANGE_LOW, RANGE_HIGH = -1e3, 1e3
-    RANGE_SIZE = RANGE_HIGH - RANGE_LOW
-    
-    def __init__(self, x):
-        self.x = float(x)
-        
-        #f1(x) = (x-2)**2
-        self.y1 = (x - 2.0) * (x - 2.0)
-        
-        # f2(x) = x*x
-        self.y2 = x * x
-        
-        #f3(x) = x-1
-        self.y3 = x-1
-        
-    @staticmethod
-    def populate():
-        # Creates a random sample of data points
-        Point.SAMPLE = []
-        for _ in xrange(Point.SAMPLE_SIZE):
-            x = Point.RANGE_LOW + (random.random() * Point.RANGE_SIZE)
-            Point.SAMPLE.append(Point(x))
+class SymbolicRegression(Chromosome):
 
-    def __repr__(self):
-        return "Point:({0},[{1}, {2} {3}])".format(self.x, self.y1, self.y2, self.y3)
-
-
-class SymbolicRegression(MOChromosome):
-
-    functions = add_op, subtract_op, multiply_op, divide_op
+    functions = op_add, op_multiply, op_substract, op_divide
     terminals = 'x', 
-#    terminals += tuple(range(100))
-    
+
     def _fitnesses(self):
-        '''
-        fitness function of the problem,
-        one objective
-        minimize the error1 and error2
-        minize the length of gene
-        '''
+        '''fitness function'''
         error1 = 0.0
         error2 = 0.0
-        error3 = 0.0
-        gene1Len = float('inf')
-        gene2Len = float('inf') 
-        for point in Point.SAMPLE:
-            try:
-                guess = self(point) # Evaluation of this chromosome
-#                print "guess:", guess
-                error1 += abs(guess[0] - point.y1)
-                error2 += abs(guess[1] - point.y2)
-                error3 += abs(guess[2] - point.y3)
-#                gene1Len, gene2Len = [len(gene) for gene in self.genesCodingRegion()]
-#            except AttributeError: # programmer error1
-#                raise
-            
-            except: # unviable organism
-                error1 = float('inf')
-                error2 = float('inf')
-                error3 = float('inf')
         
-        return (error1, )
+        # Evaluation of this chromosome
+        guess = self.eval(Population.df)
+
+        error1 += abs(guess[0] - Population.df['f1'])
+        error2 += abs(guess[1] - Population.df['f2'])
+        print "e1:", error1
+        print "e2:", error2
+        return (error1, error2)
     
     def _solved(self):
-        '''terminal condition of this chromosome'''
+        '''termination condition'''
         return False
     
 
-def GEPAlgorithm(generations=10, populationSize=1000, headLength=4, numOfGenes=2):
-    Point.populate()
-    t1 = time()
-    # Search for a solution
-    p = MOPopulation(SymbolicRegression, populationSize, headLength, numOfGenes)
+def GEPAlgorithm(generations=10, popSize=1000, 
+                 headLength=4, n_genes=2):
+    df = Dataset()
+    print df
+    t0 = time()
+
+    Population.df = df
+    p = Population(SymbolicRegression, popSize, headLength, n_genes)
     p.solve(generations)
         
     #print final result
-#    print "best front fitnesses:", 
-#    for chro in p.bestFront:
-#        print "fitness:{0}, {1}, {2}".format(chro.fitnesses, chro.genes[0].codingLength(), chro.genes[1].codingLength())
-#        print "gene[0]:{0}".format(chro.genes[0].reprCodingRegion())
-#        print "gene[1]:{0}".format(chro.genes[1].reprCodingRegion())
-#    print "total elapsed time:{0:.3f} secs".format(time()-t1)
+    print "best fitnesses:", 
+    for chro in p.bestFront:
+        print "fitness:%s, %s, %s"%(chro.fitnesses, 
+                                    chro.genes[0].evalLength, 
+                                    chro.genes[1].evalLength)
+        print "gene[0]:%s"%(chro.genes[0].evalRepr)
+        print "gene[1]:%s"%(chro.genes[1].evalRepr)
+    print "5.3f secs"%(time()-t0)
 
 if __name__ == '__main__':
-    
-#    print fileDir
-#    print packageDir
     
 #    import cProfile
 #    cProfile.run('GEPAlgorithm()')
