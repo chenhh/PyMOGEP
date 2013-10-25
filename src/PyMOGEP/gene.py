@@ -7,8 +7,8 @@
 C. Ferreira, "Gene Expression Programming: A New Adaptive Algorithm for 
 Solving Problems.," Complex Systems, vol. 13, pp. 87-129, 2001.
 '''
-import numpy as np
-from PyMOGEP.decorator import memory
+import copy
+from PyMOGEP.decorator import (memory, cache)
 
 class Gene(object):
     '''GEP gene class, a chromosome can contain many genes, and they 
@@ -17,15 +17,13 @@ class Gene(object):
 
     def __init__(self, alleles, headLength, Dc=None):
         '''
-        @param alleles: numpy.array, symbol of function and terminal
+        @param alleles: list, symbol of function and terminal
         @param headLength: integer, head length of the gene
-        @param Dc: None or numpy.array, numerical constants
+        @param Dc: None or list, numerical constants
         
         @ivar evalLength: integer, number of alleles used after evaluating the gene
-        @ivar _evalAlleles: numpy.array,  partial elements of the alleles
-        @ivar _leafNodes: numpy.array of list, the list contains the information 
-                          (variable, [location])
-        
+        @ivar _evalAlleles: list,  partial elements of the alleles
+        @ivar evalRepr: representation of the evaluting alleles, not whole alleles   
         '''
         self.alleles = alleles
         self.headLength = headLength
@@ -33,9 +31,9 @@ class Gene(object):
         
         self.evalLength = 0
         self._evalAlleles = None
-        self._leafNodes = None
-        self._parseGene()
-    
+        self._evalLength()
+        self.evalRepr = None
+        
     
     def _evalLength(self):
         '''
@@ -52,113 +50,80 @@ class Gene(object):
         self.evalLength = endIdx + 1
         self._evalAlleles = self.alleles[:self.evalLength]
         
-        
-    def _evalLeafNodes(self):
-        ''' 
-        the variable in the alleles is string 
-        self._evaluation=[+, +, x, y, x, x ]
-        leafNodes = [('x', [2, 4, 5]), (('y', [3])]
-        '''
-        leafs = {}
-        for idx, allele in enumerate(self._evalAlleles):
-            if isinstance(allele, str):
-                if allele in leafs.keys():
-                    leafs[allele].append(idx)
-                else:
-                    leafs[allele] = [idx, ]
-         
-        self._leafNodes = np.array([(key, np.array(val)) 
-                             for key, val in leafs.items()])          
-                    
-        
-    def _evalGene(self, df):
-        '''
-        replace the variables in self._evalAlleles to the values
-        defined by the user.
-        @param dataframe, pandas.DataFrame, data given by users for evaluating
-                                    and it should contain one row 
-        '''
-        
-      
-    
+
     @memory
     def eval(self, df, Dc):
         '''
-        E.g.:
-        gene = MOKarvaGene()   #call __init__
-        gene()                 #call __call__
-        
-        Evaluates the Karva gene against gene from argument.
-        if the gene is evaluated, the result will memoize in its 
+        Evaluates the gene against gene from argument.
+        if the gene is evaluated once, the result will memory in its 
         attribute.
-          
-        @param gene: gene of a Karva gene
-        @return: result of evaluating the gene.
+        we memory the evaluted the results in its attributes.
+        alleles: [+, x, +, y, x ]
+        
+        @param df, pandas.DataFrame, user specified data set
+        @return, numpy.array, results of evaluating the gene.
         '''
         self._evalLength()
         self._evalLeafNodes()
+        self._evalGene()
         
-        # Evaluate the gene against gene in reverse
-        index = self.codingLength + 1
-        for i in reversed(xrange(index)):
-            allele = self.alleles[i]
+        idx = self.evalLength + 1
+        for jdx in reversed(xrange(idx)):
+            allele = self._evalAlleles[jdx]
 
             # if allele is a function
             if callable(allele):
                 arity = allele.func_code.co_argcount
-                args = self._evaluation[index - arity:index]
+                args = self._evalAlleles[idx - arity:idx]
 
-                # Replace the operation in eval with its return val
-                self._evaluation[i] = allele(*args)
-                index -= arity
+                #replace args to array
+                arrs = [df[arg] for arg in args]
+          
+                # Replace the operation in eval with its return array
+                self._evalAlleles[jdx] = allele(*arrs)
+                idx -= arity
 
-        return self._evaluation[0]
+        return self._evalAlleles[0]
     
                  
     def derive(self, changes):
         '''
-        Derives a gene from self.
-        type1: (修改的位置, 修改後的符號)
-        e.g. replacing allele 0 with 'x' and allele 3 with a 
-        function add via point mutation would look like:
-            gene.derive([(0, ['x']), (3, [add]))
+        if the changes are the same with alleles of this gene, 
+        return this gene, not a copy.
         
-        type2: (修改的起始點, 連續修改後的符號)
-        e.g. replacing a block of alleles in crossover would like like:
-            gene.derive([(5, [add, 'x', 'y'])])
-
-        #如果changes後的部份與原來相同，則傳回原物件(not a copy)
-        @param changes: sequence of (index, alleles) tuples
-        @return: new KarvaGene
+        @param changes, list, (start idx, list of modify alleles)
+        @return, gene: new gene
         '''
-        new = None  # new gene
-        same = True  # whether or not the codingLength region is the same
+        new = None   # new gene
+        same = True  # whether or not the evaluate region is the same
         
-        for index, alleles in changes:
+        for idx, alleles in changes:
             length = len(alleles)
-            if self[index:index + length] != alleles:
+            if self[idx: idx + length] != alleles:
                 # Copy the alleles on first change
                 if not new:
-                    new = self[:index] + alleles + self[index + length:]
+                    new = self[:idx] + alleles + self[idx + length:]
                 else:
-                    new[index:index + length] = alleles
+                    new[idx:idx + length] = alleles
                 
-                # Does this change the codingLength region?
-                if same and index <= self.codingLength:
+                # Does this change the evalLength region?
+                if same and idx <= self.evalLength:
                     same = False
         
-        # 完全沒有修改gene
+        # the gene is not changed
         if not new:
             return self
         
-        # gene被修改,且有修改到coding region
+        # the gene is changed, and it modifies the evaluate region
         if not same:
             gene = type(self) (new, self.headLength)
-        # gene被修改,但未修改到coding region
+        # the gene is changed, but it not modifies the evaluate region
         else:
-            gene = copy(self)
+            gene = copy.copy(self)
             gene.alleles = new
-            gene.codingRepr = None
+            
+            #update representation of the gene
+            gene.evalRepr = None
             try:
                 delattr(gene, "___repr___cache")
             except AttributeError:
@@ -166,14 +131,37 @@ class Gene(object):
         
         return gene
     
-    def __repr__():
-        pass
+    @cache
+    def __repr__(self):
+        '''
+        note: after we derive a new gene, we must update __repr__,
+        else it will show old cache data, not current data.
+        
+        @return: string, content of gene alleles'''
+        
+        gene_str = ''
+        for idx, allele in enumerate(self.alleles):
+            # get symbol of the function (add by symbol decorator)
+            try:
+                name = allele.symbol
+            except AttributeError:
+                try:
+                    name = allele.__name__
+                except AttributeError:
+                    name = str(allele)
+
+            # surrounding each allele with [], 
+            gene_str = "".join((gene_str, '[%s]' % name))
+            if idx == self.evalLength-1:
+                self.evalRepr = gene_str
+        return gene_str
     
         
     def __len__(self):
         '''@return: number of alleles in the gene'''
-        return self.alleles.size
-        
+        return len(self.alleles)
+    
+    
     def __iter__(self):
         '''@return: iterator over gene alleles'''
         return iter(self.alleles)
@@ -182,5 +170,15 @@ class Gene(object):
         '''@return: an individual allele from the gene'''
         return self.alleles[idx]
 
+def testGene():
+    from PyMOGEP.function.arithmetic import (
+            op_add, op_substract, op_multiply, op_divide)
+    g = Gene([ op_add, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
+    print g
+    print g.evalRepr
+    print g.evalLength
+
+
+
 if __name__ == '__main__':
-    pass
+    testGene()
