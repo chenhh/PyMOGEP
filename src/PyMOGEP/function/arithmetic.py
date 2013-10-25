@@ -7,7 +7,7 @@
 
 from PyMOGEP.decorator import symbol
 
-
+__all__ = ['op_add', 'op_substract', 'op_multiply', 'op_divide', 'op_modulus']
 
 @symbol('+')
 def op_add(x, y):
@@ -29,5 +29,3 @@ def op_divide(x, y):
 def op_modulus(x, y):
     return x % y
  
-
-__all__ = [op_add, op_substract, op_multiply, op_divide, op_modulus]

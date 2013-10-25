@@ -9,7 +9,6 @@ multi-objective algorithm: NSGA-II
 '''
 
 from time import time
-import numpy as np
 import random
 from PyMOGEP.evolution.linker import defaultLinker
 from PyMOGEP.sort import JensenSort
@@ -18,6 +17,7 @@ from PyMOGEP.evolution.crossover import *
 from PyMOGEP.evolution.mutator import *
 from PyMOGEP.evolution.transposer import *
 from PyMOGEP.evolution.comparison import *
+
 
 class Population(object):
     '''population of GEP chromosomes'''
@@ -155,8 +155,8 @@ class Population(object):
         -將只保留一個chromosome, 再用Pareto front rank 1中的chromosome
         -來演化出fitnesses非[0,0]的chromosome
         '''
-        
-        population = [invert(chro, self.inversionRate) for chro in population]
+        #inversion
+        population = [inversion(chro, self.inversionRate) for chro in population]
         
         # Insertion Sequence transposition
         population = [transposeIS(chro, random.choice(self.transISLength),
@@ -165,6 +165,7 @@ class Population(object):
         # Root Insert Sequence transposition
         population = [transposeRIS(chro, random.choice(self.transRISLength),
                         self.transRISRate) for chro in population]
+        
         # Gene transposition
         population = [transposeGene(chro, self.transGeneRate) for chro in population]
            
@@ -190,13 +191,14 @@ class Population(object):
         
         return population
     
+    
     def evolve(self):
+        '''execute the following procedure in each generation'''
         # produce offspring        
-        currentOffspring = self.selector(self.population)
+        offspring = self.selector(self.population)
+        offspring = self.evolution(offspring)    
         
-        currentOffspring = self.evolution(currentOffspring)    
-        
-        mixedPopulation = self.population + currentOffspring
+        mixedPopulation = self.population + offspring
         mixedParetoFronts = self._fastNonDominatedSort(mixedPopulation)
         
         assert sum(len(front) for front in mixedParetoFronts) == 2 * self.popSize
@@ -205,10 +207,10 @@ class Population(object):
         self._nextPopulation = []
         idx = 0 
         while (len(self._nextPopulation) + len(mixedParetoFronts[idx])) <= self.popSize:
-            self._nextPopulation.extend(self._crowdingDistanceAssignment(mixedParetoFronts[idx]))
+            self._nextPopulation.extend(
+                    self._crowdingDistanceAssignment(mixedParetoFronts[idx])
+                    )
             idx += 1
-            
-        # 補齊chromosome to next popluation
         self._crowdingDistanceAssignment(mixedParetoFronts[idx])
 
         # descending order
@@ -224,24 +226,27 @@ class Population(object):
         [self._crowdingDistanceAssignment(front) for front in self.ParetoFronts]
         
         # update information
-        self.__age += 1
+        self._gen += 1
         if self.runStatistics:
             self._updateStats()
  
     def solve(self, n_generation):
         '''
-        Cycles a number of generations. Stops if self.solved()
-        @param generation: # of genrations to give up after
+        execute a number of generations. Stops if self.solved()
+        @param generation: number of generation for evolving
         '''
         for _ in xrange(n_generation):
-            t1 = time()
+            t0 = time()
             self.evolve()
-            if len(self.bestFront) > 0 and all([front.solved for front in self.bestFront]):
+            
+            if len(self.bestFront) > 0 and all(front.solved for front in self.bestFront):
                 break
+            
             print self
-            print "Generation:[{0}] Best Pareto front:".format(self.gen)
+            print "Generation:[%s] Best Pareto front[%s]:"%(self.gen, 
+                                                            len(self.bestFront))
             for chro in self.bestFront:
                 print  chro.fitnesses, chro
-            print "best front size:{0}, execution time:{1:.3f} secs".format(
-                len(self.bestFront), time() - t1)
+            
+            print "%.3f secs"%(time() - t0)
         

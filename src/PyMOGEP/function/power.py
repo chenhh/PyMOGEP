@@ -8,6 +8,9 @@
 from PyMOGEP.decorator import symbol
 import numpy as np
 
+__all__ = ['op_ln', 'op_log10', 'op_power', 'op_exp', 'op_power10', 'op_square',
+           'op_cube', 'op_root', 'op_cube_root', 'op_inverse']
+
 @symbol('LN')
 def op_ln(x):
     return np.log(x)
@@ -48,6 +51,3 @@ def op_cube_root(x):
 def op_inverse(x):
     return 1./x
 
-
-__all__ = [op_ln, op_log10, op_power, op_exp, op_power10, op_square,
-           op_cube, op_root, op_cube_root, op_inverse]

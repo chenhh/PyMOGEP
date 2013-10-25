@@ -10,42 +10,39 @@ each element of the list follows the format
 '''
 import random
 
-__all__ = ['invert', 'transposeIS', 'transposeRIS', 'transposeGene']
+__all__ = ['inversion', 'transposeIS', 'transposeRIS', 'transposeGene']
 
-def invert(chro, inversionRate):
+def inversion(chro, inversionRate):
     '''
-    Produces a new chro via headLength inversion
-    @param inversionRate
-    @return: child chro
+    Produces a new chromosome via headLength inversion
+    @param chro: PyMOGEP.chromosome
+    @param inversionRate: positive float
+    @return:  chroromosome
     '''
-    assert inversionRate
+    assert 0< inversionRate <=1.
     
     if chro.headLength < 2 or random.random() >= inversionRate: 
         return chro
     else:
         genes = list(chro.genes)
     
-        #idx: 那一個gene要做invert
-        #start, stop: gene head invert的起始點與終點
-        idx = random.choice(xrange(len(chro.genes)))
-        start, stop = random.sample(xrange(chro.headLength), 2)
-        if start > stop:
-            start, stop = stop, start
+        geneIdx = random.choice(xrange(len(chro.genes)))
+        idx1, idx2 = random.sample(xrange(chro.headLength), 2)
+        if idx1 > idx2:
+            idx1, idx2 = idx2, idx1
     
         # Create the new chro
-        replacement = list(reversed(genes[idx][start:stop+1]))
-        genes[idx] = genes[idx].derivmodifyart, replacement)])
-        return chro._child(genes)
+        replacement = list(reversed(genes[geneIdx][idx1:idx2+1]))
+        genes[geneIdx] = genes[geneIdx].modify( [idx1, replacement ])
+        return chro.newInstance(genes)
 
 def transposeIS(chro, length, transpositionISRate):
     '''
-    Produces a new chro via IS transposition
+    Produces a new chromosome via IS transposition
     @param length: sequence length (typically 1, 2, or 3)
-    @return:       child chro
+    @return: a new chromosome
     '''
-    # Since IS does not transpose to the root, it has no purpose
-    # if the headLength length is less than 2.
-    assert transpositionISRate
+    assert 0 < transpositionISRate <=1
     
     if chro.headLength < 2 or random.random() >= transpositionISRate:
         return chro
@@ -66,8 +63,8 @@ def transposeIS(chro, length, transpositionISRate):
         # Insert into the target gene's headLength
         replacement = source[start:end][:chro.headLength-offset] + \
                       genes[target][offset:chro.headLength-end+start]
-        genes[target] = genes[target].derivmodifyfset, replacement)])
-        return chro._child(genes)
+        genes[target] = genes[target].modify([start, replacement])
+        return chro.newInstance(genes)
 
 def transposeRIS(chro, length, transpositionRISRate):
     '''
@@ -98,8 +95,8 @@ def transposeRIS(chro, length, transpositionRISRate):
         
         # Insert into the target gene's headLength at position 0
         replacement   = source[start:end] + genes[target][:chro.headLength+start-end]
-        genes[target] = genes[target].derivmodify replacement)])
-        return chro._child(genes)
+        genes[target] = genes[target].modify([start, replacement])
+        return chro.newInstance(genes)
 
 def transposeGene(chro, transpositionGeneRate):
     '''
@@ -118,4 +115,4 @@ def transposeGene(chro, transpositionGeneRate):
         
         # Switch these genes
         genes[0], genes[which] = genes[which], genes[0]
-        return chro._child(genes)
+        return chro.newInstance(genes)

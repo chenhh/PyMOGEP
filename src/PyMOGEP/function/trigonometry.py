@@ -8,6 +8,9 @@
 from PyMOGEP.decorator import symbol
 import numpy as np
 
+_all__ = ['op_sin', 'op_cos', 'op_tan', 'op_csc', 'op_sec', 'op_cot',
+           'op_arcsin', 'op_arccos', 'op_arctan', 'op_arccsc', 'op_arcsec', 'op_arccot',
+           'op_sinh', 'op_cosh', 'op_tanh', 'op_csch', 'op_sech', 'op_coth']
 
 
 @symbol('SIN')
@@ -82,6 +85,4 @@ def op_sech(x):
 def op_coth(x):
     return 1./np.tanh(x)
 
-__all__ = [op_sin, op_cos, op_tan, op_csc, op_sec, op_cot,
-           op_arcsin, op_arccos, op_arctan, op_arccsc, op_arcsec, op_arccot,
-           op_sinh, op_cosh, op_tanh, op_csch, op_sech, op_coth]
+_

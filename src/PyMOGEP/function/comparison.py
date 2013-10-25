@@ -8,6 +8,10 @@
 from PyMOGEP.decorator import symbol
 
 
+__all__ = ['op_equal', 'op_unequal', 'op_less', 'op_greater', 
+           'op_less_or_equal', 'op_greater_or_equal']
+
+
 @symbol('==')
 def op_equal(x, y):
     return x==y
@@ -31,7 +35,3 @@ def op_less_or_equal(x, y):
 @symbol('>=')
 def op_greater_or_equal(x, y):
     return x>=y
-
-
-__all__ = [op_equal, op_unequal, op_less, op_greater, op_less_or_equal, 
-           op_greater_or_equal]

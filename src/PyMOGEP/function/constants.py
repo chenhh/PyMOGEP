@@ -8,7 +8,7 @@
 from PyMOGEP.decorator import symbol
 import numpy as np
 
-
+__all__ = ['op_zero', 'op_one', 'op_pi', 'op_exp']
 
 @symbol('0')
 def op_zero():
@@ -26,4 +26,3 @@ def op_pi():
 def op_exp():
     return np.e
 
-__all__ = [op_zero, op_one, op_pi, op_exp]
