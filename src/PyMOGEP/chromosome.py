@@ -93,7 +93,7 @@ class Chromosome(object):
 
     def __init__(self, genes, headLength, linker=defaultLinker):
         '''
-        @param genes: list of genes in the chromosome
+        @param genes: list of genes in the chro
         @param headLength: integer, length (not index) of the gene heads
         @param linker: linker function for gene evaluation
         '''

@@ -25,11 +25,11 @@ class Population(object):
     
     mutationRate = 0.6 
     inversionRate = 0.1
-    transpositionISRate = 0.1
-    transpositionISLength = 1, 2, 3
-    transpositionRISRate = 0.1
-    transpositionRISLength = 1, 2, 3
-    transpositionGeneRate = 0.1
+    transISRate = 0.1
+    transISLength = 1, 2, 3
+    transRISRate = 0.1
+    transRISLength = 1, 2, 3
+    transGeneRate = 0.1
     crossoverOnePointRate = 0.3
     crossoverTwoPointsRate = 0.3
     crossoverGeneRate = 0.1
@@ -40,23 +40,24 @@ class Population(object):
     gen = property(lambda self: self._gen, doc='Generation number')
     bestFront = property(
         lambda self: self.ParetoFronts[0],
-        doc='The best Pareto front Chromosome of the current generation'
+        doc='The best Pareto front'
     )
 
-    def __init__(self, chromosome, popSize, headLength,
-                 n_genes=1, linker=defaultLinker, verbose=False):
+    def __init__(self, chro, popSize, headLength, n_genes=1, n_elites=1,
+                 linker=defaultLinker, verbose=False):
         '''
-        @param chromosome, PyMOGEP.chromosome, user defined chromosome
+        @param chro, PyMOGEP.chromosome, user defined chromosome
         @param popSize, positive integer, population size
         @param headLength, positive integer, head length of a gene
         @param n_genes, positive integer, num. of genes of a chromsome
+        @param n_elites, positive integer, num. of better genes preserve in each gen.
         @param linker, linker function for connecting genes
-        Constructor
         '''
         assert popSize > 0 and headLength > 0 and n_genes > 0
         self.popSize = popSize
         self.headLength = headLength
         self.n_genes = n_genes
+        self.n_elites = n_elites
         self.linker = linker
         self._gen = 0
         self.selector = binaryTournamentSelection
@@ -67,7 +68,7 @@ class Population(object):
         self.population = []
         t0 = time()
         while len(self.population) < popSize:
-            chro = chromosome.randomChromosome(headLength, n_genes, linker)
+            chro = chro.randomChromosome(headLength, n_genes, linker)
             zero = True
             for val in chro.fitnesses:
                 if val != 0.0:
@@ -97,11 +98,13 @@ class Population(object):
             self.stdevs = [float('inf')] * self.n_objectives
             self._updateStats()
       
+    
     def _crowdingDistanceAssignment(self, nonDominatedSet):
         '''       
         The overall crowding-distance value is calculated as
         the sum of individual distance values corresponding to 
         each objective.
+        the larger distance, the better chromosome
         @param nondominatedSet: one set of the Pareto front
         '''
         length = len(nonDominatedSet)
@@ -136,6 +139,7 @@ class Population(object):
                 
         return nonDominatedSet
     
+    
     def _fastNonDominatedSort(self, population):
         '''@return all Pareto fronts (list of non-dominated set)'''
         if self.n_objectives == 2:
@@ -143,6 +147,7 @@ class Population(object):
         else:
             ParetoFronts = JensenSort.highObjectivesNonDominatedSort(population)
         return ParetoFronts
+    
     
     def evolution(self, population):
         '''
@@ -154,14 +159,14 @@ class Population(object):
         population = [invert(chro, self.inversionRate) for chro in population]
         
         # Insertion Sequence transposition
-        population = [transposeIS(chro, random.choice(self.transpositionISLength),
-                        self.transpositionISRate) for chro in population ]
+        population = [transposeIS(chro, random.choice(self.transISLength),
+                        self.transISRate) for chro in population ]
         
         # Root Insert Sequence transposition
-        population = [transposeRIS(chro, random.choice(self.transpositionRISLength),
-                        self.transpositionRISRate) for chro in population]
+        population = [transposeRIS(chro, random.choice(self.transRISLength),
+                        self.transRISRate) for chro in population]
         # Gene transposition
-        population = [transposeGene(chro, self.transpositionGeneRate) for chro in population]
+        population = [transposeGene(chro, self.transGeneRate) for chro in population]
            
         # mutation
         population = [mutation(chro, self.mutationRate) 

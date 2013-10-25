@@ -13,7 +13,7 @@ vol. 7, pp. 503-515, 2003.
 
 import bisect
 
-def twoObjectivCmpFun(chro1, chro2):
+def twoObjectivCmpFunc(chro1, chro2):
     '''
     if chromosome1.fitnesses dominating chromosome2.fitnesses, then return 1
     elif chromosome1.fitnesses == chromosome2.fitnesses, then return 0
@@ -36,7 +36,7 @@ def twoObjectivesSweepAlgorithm(population):
     N: num. of points
     '''
     #decreasing (dominating), O(NlogN)
-    population.sort(cmp=twoObjectivCmpFun, reverse=True)
+    population.sort(cmp=twoObjectivCmpFunc, reverse=True)
     ParetoFronts =[[population[0]]]
     
     frontCnt = 0
