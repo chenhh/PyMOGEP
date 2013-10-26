@@ -40,7 +40,7 @@ def Dataset(n_data=1000):
 
 class SymbolicRegression(Chromosome):
 
-    functions = op_add, op_multiply, op_substract, op_divide
+    functions = op_add, op_multiply, op_substract
     terminals = 'x', 
 
     def _fitnesses(self):
@@ -50,11 +50,15 @@ class SymbolicRegression(Chromosome):
         
         # Evaluation of this chromosome
         guess = self.eval(Population.df)
-
-        error1 += abs(guess[0] - Population.df['f1'])
-        error2 += abs(guess[1] - Population.df['f2'])
-        print "e1:", error1
-        print "e2:", error2
+#         print  "len:", len(guess)
+#         print "type:", type(guess[0]), type(guess[1])
+#         print "guess 0:", guess[0]
+#         print "guess 1:", guess[1]
+#         print 
+        error1 = np.sum(np.abs(guess[0] - Population.df['f1']))
+        error2 = np.sum(np.abs(guess[1] - Population.df['f2']))
+#         print "e1:", error1, type(error1)
+#         print "e2:", error2, type(error2)
         return (error1, error2)
     
     def _solved(self):
@@ -64,7 +68,7 @@ class SymbolicRegression(Chromosome):
 
 def GEPAlgorithm(generations=10, popSize=1000, 
                  headLength=4, n_genes=2):
-    df = Dataset()
+    df = Dataset(10)
     print df
     t0 = time()
 

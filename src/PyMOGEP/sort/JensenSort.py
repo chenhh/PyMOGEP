@@ -19,7 +19,7 @@ def twoObjectivCmpFunc(chro1, chro2):
     elif chromosome1.fitnesses == chromosome2.fitnesses, then return 0
     else return -1
     '''
-    assert chro1.numOfObjectives == chro2.numOfObjectives == 2
+    assert chro1.n_objectives == chro2.n_objectives == 2
     
     if (chro1.fitnesses[0] < chro2.fitnesses[0]) or (
      chro1.fitnesses[0] == chro2.fitnesses[0] and 
@@ -44,7 +44,7 @@ def twoObjectivesSweepAlgorithm(population):
         #check chro is not dominated by any chro in ParetoFronts[frontCnt]
         anyDominating = False
         for frontChro in ParetoFronts[frontCnt]:
-            if frontChro.fitnessesDominating(chro):
+            if frontChro.dominating(chro):
                 anyDominating = True
                 break
             
@@ -59,7 +59,7 @@ def twoObjectivesSweepAlgorithm(population):
             #find lowest front b s.t. Paretofronts[b] not dominating chro
             b = 0
             for cnt in xrange(frontCnt+1):
-                if not any(frontChro2.fitnessesDominating(chro) for 
+                if not any(frontChro2.dominating(chro) for 
                                 frontChro2 in ParetoFronts[cnt]):
                     b = cnt
                     break

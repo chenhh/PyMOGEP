@@ -75,26 +75,24 @@ class Gene(object):
         @return, numpy.array, results of evaluating the gene.
         '''
         self._evalLength()
-        print self.evalLength
-        print repr(self)
-        print self.evalRepr
-        
-        
-        idx = self.evalLength
-        for jdx in reversed(xrange(idx)):
-            allele = self._evalAlleles[jdx]
 
+        
+      
+        jdx = self.evalLength
+        for idx in reversed(xrange(jdx)):
+            allele = self._evalAlleles[idx]
+            #replace variable to corresponding array
+            if isinstance(allele, str):
+                self._evalAlleles[idx] = df[allele]
+                
             # if allele is a function
             if callable(allele):
                 arity = allele.func_code.co_argcount
-                args = self._evalAlleles[idx - arity:idx]
-
-                #replace args to array
-                arrs = [df[arg] for arg in args]
-          
+                args = self._evalAlleles[jdx - arity: jdx]
+            
                 # Replace the operation in eval with its return array
-                self._evalAlleles[jdx] = allele(*arrs)
-                idx -= arity
+                self._evalAlleles[idx] = allele(*args)
+                jdx -= arity
 
         self.evalResultArr = self._evalAlleles[0] 
         return self.evalResultArr

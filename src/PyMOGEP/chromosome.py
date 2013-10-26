@@ -76,7 +76,7 @@ class Chromosome(object):
     fitnesses = property(lambda self: self._fitnesses(), 
                          doc='fitnesses')
     
-    n_objectives = property(lambda self: len(self.fitnesses[0]), 
+    n_objectives = property(lambda self: len(self.fitnesses), 
                                doc='number of objectives')
      
     @classmethod

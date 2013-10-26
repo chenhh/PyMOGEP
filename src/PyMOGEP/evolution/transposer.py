@@ -33,7 +33,7 @@ def inversion(chro, inversionRate):
     
         # Create the new chro
         replacement = list(reversed(genes[geneIdx][idx1:idx2+1]))
-        genes[geneIdx] = genes[geneIdx].modify( [idx1, replacement ])
+        genes[geneIdx] = genes[geneIdx].modify( [[idx1, replacement ]])
         return chro.newInstance(genes)
 
 def transposeIS(chro, length, transpositionISRate):
@@ -63,7 +63,7 @@ def transposeIS(chro, length, transpositionISRate):
         # Insert into the target gene's headLength
         replacement = source[start:end][:chro.headLength-offset] + \
                       genes[target][offset:chro.headLength-end+start]
-        genes[target] = genes[target].modify([start, replacement])
+        genes[target] = genes[target].modify([[start, replacement]])
         return chro.newInstance(genes)
 
 def transposeRIS(chro, length, transpositionRISRate):
@@ -95,7 +95,7 @@ def transposeRIS(chro, length, transpositionRISRate):
         
         # Insert into the target gene's headLength at position 0
         replacement   = source[start:end] + genes[target][:chro.headLength+start-end]
-        genes[target] = genes[target].modify([start, replacement])
+        genes[target] = genes[target].modify([[start, replacement]])
         return chro.newInstance(genes)
 
 def transposeGene(chro, transpositionGeneRate):
