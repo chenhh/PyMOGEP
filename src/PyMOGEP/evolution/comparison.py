@@ -20,11 +20,11 @@ def partialOrder(chro1, chro2):
     if chro1.ParetoRank < chro2.ParetoRank:
         return 1
     #larger crowing distance is better
-    elif chro1.ParetoRank == chro2.ParetoRank and \
-        chro1.crowdingDistance > chro2.crowdingDistance:
+    elif (chro1.ParetoRank == chro2.ParetoRank and 
+        chro1.crowdingDistance > chro2.crowdingDistance):
         return 1
-    elif  chro1.ParetoRank == chro2.ParetoRank and \
-        chro1.crowdingDistance == chro2.crowdingDistance:
+    elif  (chro1.ParetoRank == chro2.ParetoRank and 
+        chro1.crowdingDistance == chro2.crowdingDistance):
         return 0
     else:
         return -1

@@ -4,8 +4,7 @@
 @mail: chenhh@par.cse.nsysu.edu.tw
 @license: GPLv2
 
-all return type should be list, and 
-each element of the list follows the format 
+return type of each method is list of the following format:
 (alleleIdx, [new allele1,new allele2,...])
 '''
 import random
@@ -15,11 +14,14 @@ __all__ = ['crossoverPairs', 'crossoverOnePoint',
 
 def crossoverPairs(popSize, crossoverRate):
     '''
-    finding out which two chromosomes in the population should do crossover operation
-    @param crossoverRate: crossover rate
-    @return: ((p1a-index, p1b-index), (p2a-index, p2b-index), ...)
+    finding out which two chromosomes in the population should do 
+    crossover operation
+    
+    @param crossoverRate: positive float
+    @return: ((pair1-a-idx, pair1-b-idx), 
+              (pair2-a-idx, pair2-b-idx), ...)
     '''
-    assert 0 < crossoverRate <= 1.0
+    assert 0 < crossoverRate <= 1.
     
     if crossoverRate and popSize >= 2:
         indices = random.shuffle([idx for idx in xrange(popSize) 
@@ -35,6 +37,8 @@ def crossoverPairs(popSize, crossoverRate):
 def crossoverOnePoint(chro1, chro2):
         '''
         Produces two children via one-point crossover
+        it will not produce illegel genes.
+        
         @param chro1, PyMOGEP.chromosome
         @param chro2:  PyMOGEP.chromosome
         @return: child 1, child 2
@@ -56,9 +60,11 @@ def crossoverOnePoint(chro1, chro2):
 def crossoverTwoPoints(chro1, chro2):
         '''
         Produces two children via two-point crossover
+        it will not produce illegel genes.
+        
         @param chro1: PyMOGEP.chromosome
         @param chro2: PyMOGEP.chromosome
-        @return:      child 1, child 2
+        @return: child 1, child 2
         '''
         #total number of alleles in chro1 chromosome
         if len(chro1) < 2:
@@ -66,15 +72,14 @@ def crossoverTwoPoints(chro1, chro2):
 
         genes1, genes2 = list(chro1.genes), list(chro2.genes)
 
-        # Choose start and stop index
+        #start and stop index（on chromosome)
         idx1, idx2 = random.sample(xrange(len(chro1)), 2)
         if idx1 > idx2:
             idx1, idx2 = idx2, idx1
         
         # Convert these to gene and allele numbers
-        geneLength = len(chro1.genes[0])
-        idx1, allele1 = divmod(idx1, geneLength)
-        idx2, allele2 = divmod(idx2, geneLength)
+        geneIdx1, alleleIdx1 = divmod(idx1, len(chro1.genes[0]))
+        geneIdx2, alleleIdx2 = divmod(idx2, len(chro1.genes[0]))
 
         # Switch genes in between the modified genes
         if idx2 - idx1 > 1:
@@ -82,14 +87,14 @@ def crossoverTwoPoints(chro1, chro2):
             genes1[start:idx2], genes2[start:idx2] = \
                 genes2[start:idx2], genes1[start:idx2]
         
-        # And switch components of the start and stop genes
-        child1 = genes1[idx1].modify([(allele1, genes2[idx1][allele1:])])
-        child2 = genes2[idx1].modify([(allele1, genes1[idx1][allele1:])])
-        genes1[idx1], genes2[idx1] = child1, child2
+        #switch alleles of the start and stop genes
+        child1 = genes1[geneIdx1].modify([(alleleIdx1, genes2[geneIdx1][alleleIdx1:])])
+        child2 = genes2[geneIdx1].modify([(alleleIdx1, genes1[geneIdx1][alleleIdx1:])])
+        genes1[geneIdx1], genes2[geneIdx1] = child1, child2
             
-        child1 = genes1[idx2].modify([(0, genes2[idx2][:allele2])])
-        child2 = genes2[idx2].modify([(0, genes1[idx2][:allele2])])
-        genes1[idx2], genes2[idx2] = child1, child2
+        child1 = genes1[geneIdx2].modify([(0, genes2[geneIdx2][:alleleIdx2])])
+        child2 = genes2[geneIdx2].modify([(0, genes1[geneIdx2][:alleleIdx2])])
+        genes1[geneIdx2], genes2[geneIdx2] = child1, child2
         
         return chro1.newInstance(genes1), chro2.newInstance(genes2)
 
@@ -97,6 +102,8 @@ def crossoverTwoPoints(chro1, chro2):
 def crossoverGene(chro1, chro2):
         '''
         Produces two children via full geneIdx crossover
+        it will not produce illegel genes.
+        
         @param chro1: PyMOGEP.chromosome
         @param chro2: PyMOGEP.chromosome
         @return: child 1, child 2

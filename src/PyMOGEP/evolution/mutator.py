@@ -4,8 +4,7 @@
 @mail: chenhh@par.cse.nsysu.edu.tw
 @license: GPLv2
 
-all return type should be list, and 
-each element of the list follows the format 
+return type of each method is list of the following format:
 (alleleIdx, [new allele1,new allele2,...])
 '''
 
@@ -15,18 +14,17 @@ __all__ = ['mutation',]
 
 def mutation(chro, mutationRate):
     '''
-    Produces a new chromosome via potential point mutation on each
+    Produces a new chromosome via multi-point mutation on each
     index.  If nothing changes, the original chromosome is returned.
-    it is multi-points mutation.
     
-    @param chro: class PyMOGEP.chromosome
-    @param mutationRate, positive float: mutation mutationRate per locus
+    @param chro: PyMOGEP.chromosome
+    @param mutationRate, positive float
     @return: new chromosome (or self)
     '''
     genes = list(chro.genes)
     
     for geneIdx, gene in enumerate(chro.genes):
-        replacements = []
+        changes = []
         for alleleIdx, allele in enumerate(gene):
             if random.random() < mutationRate:
                 if alleleIdx >= chro.headLength:
@@ -36,10 +34,10 @@ def mutation(chro, mutationRate):
                 
                 # Only use this if the mutation actually did something
                 if newAllele != allele:
-                    replacements.append((alleleIdx, [newAllele]))
+                    changes.append((alleleIdx, [newAllele,]))
                     
-        if replacements:
-            genes[geneIdx] = gene.modify(replacements)
+        if changes:
+            genes[geneIdx] = gene.modify(changes)
         
     return chro.newInstance(genes)
 
