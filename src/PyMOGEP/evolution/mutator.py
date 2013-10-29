@@ -21,6 +21,7 @@ def mutation(chro, mutationRate):
     @param mutationRate, positive float
     @return: new chromosome (or self)
     '''
+    assert 0. < mutationRate <=1.
     genes = list(chro.genes)
     
     for geneIdx, gene in enumerate(chro.genes):

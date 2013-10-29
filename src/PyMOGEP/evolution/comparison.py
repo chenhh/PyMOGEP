@@ -4,7 +4,7 @@
 @mail: chenhh@par.cse.nsysu.edu.tw
 @license: GPLv2
 '''
-__all__ = ['partialOrder']
+__all__ = ['partialOrder',]
 
 def partialOrder(chro1, chro2):
     '''

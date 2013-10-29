@@ -32,33 +32,36 @@ def twoObjectivCmpFunc(chro1, chro2):
 
 def twoObjectivesSweepAlgorithm(population):
     '''time complexity O(NlogN)
-    M: num. of objective
-    N: num. of points
+    M: number of objective
+    N: number of data point
     '''
     #decreasing (dominating), O(NlogN)
     population.sort(cmp=twoObjectivCmpFunc, reverse=True)
-    ParetoFronts =[[population[0]]]
+    ParetoFronts =[[population[0]],]
     
-    frontCnt = 0
+    frontCounter = 0
     for chro in population[1:]:
-        #check chro is not dominated by any chro in ParetoFronts[frontCnt]
-        anyDominating = False
-        for frontChro in ParetoFronts[frontCnt]:
+        #check current chromosome is not isDominated by 
+        #any chromosome in ParetoFronts[frontCounter]
+        isDominated = False
+        for frontChro in ParetoFronts[frontCounter]:
             if frontChro.dominating(chro):
-                anyDominating = True
+                isDominated = True
                 break
             
-        if anyDominating:
-            #因為point可被current ParetoFronts中某一點dominating
-            #所以此點必屬於下一級的ParetoFront
+        if isDominated:
+            #because the chromosome is isDominated by one chromosome
+            #in the Pareto front level i, the chromosome must at least 
+            #belong to Pareto front level (i+1)
             ParetoFronts.append([])
-            frontCnt += 1
-            ParetoFronts[frontCnt].append(chro)
+            frontCounter += 1
+            ParetoFronts[frontCounter].append(chro)
             
         else:
-            #find lowest front b s.t. Paretofronts[b] not dominating chro
+            #find lowest front b 
+            # s.t. any chromosome in Paretofronts[b] not dominating the chromosome
             b = 0
-            for cnt in xrange(frontCnt+1):
+            for cnt in xrange(frontCounter+1):
                 if not any(frontChro2.dominating(chro) for 
                                 frontChro2 in ParetoFronts[cnt]):
                     b = cnt
@@ -66,70 +69,80 @@ def twoObjectivesSweepAlgorithm(population):
             ParetoFronts[b].append(chro)
     return ParetoFronts
 
+
 def highObjectivesNonDominatedSort(population):
     '''
     @param points: set for non-dominated sort
-    @param M: num. of objectives or idx of objectives 
+    @param M: number of objectives or idx of objectives 
     '''
+    #computing Pareto rank of each point
+    M = population[0].n_objectives
+    assert M > 2
+    
     #initialize
     for chro in population:
         chro.ParetoRank = 1
     
-    #computing Pareto rank of each point
-    M = population[0].numOfObjectives
     ND_helper_A(population, M)
     
     #allocating each point to corresponding front    
-    numOfFronts = max(chro.ParetoRank for chro in population)
-    ParetoFronts = [ [] for _ in xrange(numOfFronts)]
+    n_front = max(chro.ParetoRank for chro in population)
+    ParetoFronts = [ [] for _ in xrange(n_front)]
     [ParetoFronts[chro.ParetoRank-1].append(chro) for chro in population]
     
     return ParetoFronts
+
 
 def splitSet(population):
     '''
     @return medianIdx: sorted population，第M個objective的中位數的索引值
     -如果value[medianIdx] == value[mediaIdx+1]時，medianIdx +=1，直到list結尾
     '''
-    dataLen = len(population)
-    M = population[0].numOfObjectives
+    popSize = population.popSize
+    n_objectives = population[0].n_objectives
     
-    halfIdx  = (dataLen-1)/2 if dataLen % 2 else dataLen/2 -1
+    midIdx  = (popSize-1)/2 if popSize % 2 else popSize/2 - 1
+    
     #小於等於median的points分類L, 大於median的points為H
     #H當中的所有元素絕對不可能dominating L中的任一點(minimizing objective)
-    for Mdx in reversed(xrange(M)):
-        population.sort(key = lambda chro: chro.fitnesses[Mdx])
-        values = [chro.fitnesses[Mdx] for chro in population]
+    for odx in reversed(xrange(n_objectives)):
+        population.sort(key = lambda chro: chro.fitnesses[odx])
+        values = [chro.fitnesses[odx] for chro in population]
         
-        medianIdx = bisect.bisect_right(values, values[halfIdx])
-        if medianIdx != dataLen:
-            return medianIdx-1, Mdx+1
-            #因為values[halfidx]一定在list內，所以medianIdx==dataLen
+        medianIdx = bisect.bisect_right(values, values[midIdx])
+        if medianIdx != popSize:
+            return medianIdx-1, odx+1
+            #因為values[halfidx]一定在list內，所以medianIdx==popSize
             #表示往後切不開，要往前切
         else:
-            medianIdx = bisect.bisect_left(values, values[halfIdx])
+            medianIdx = bisect.bisect_left(values, values[midIdx])
             if medianIdx != 0:
-                return medianIdx-1, Mdx+1
+                return medianIdx-1, odx+1
     #表示此集合的元素元全相同
     return -1, 0
 
-def ND_helper_A(population, M):
+
+def ND_helper_A(population, objectiveIdx):
     '''
-    -將points依第M個objective為基準值，分為L, H兩個set
-    -先求points第M個objective的中位數
-    -L set中的point其第M個objective之值均小於或等於中位數
-    -H set中的point其第M個objective之值均大於中位數
+    split population to two sets, L and H, according to objectives[objectiveIdx]
+    1. find the median of objectives[objectiveIdx]
+    2. the objectives[objectiveIdx] of all chromosomes in set L are less than
+       the median 
+    3. the objectives[objectiveIdx] of all chromosomes in set H are large than
+       the median
     '''
-    dataLen = len(population)
+    popSize = population.popSize
    
-    if dataLen == 2:
-        #只剩下兩個點時，若能夠直接做dominating comparison，則計算值，否則不做事
-        if population[0].fitnessesDominating(population[1]):
-            population[1].ParetoRank = max(population[0].ParetoRank+1, population[1].ParetoRank)
-        elif  population[1].fitnessesDominating(population[0]):
-            population[0].ParetoRank = max(population[0].ParetoRank, population[1].ParetoRank+1)
+    if popSize == 2:
+        # stop condition
+        if population[0].dominating(population[1]):
+            population[1].ParetoRank = max(population[0].ParetoRank+1, 
+                                           population[1].ParetoRank)
+        elif  population[1].dominating(population[0]):
+            population[0].ParetoRank = max(population[0].ParetoRank, 
+                                           population[1].ParetoRank+1)
         
-    elif dataLen > 2:
+    elif popSize > 2:
         #大於兩個點時，將points依第M個objective切成L, H兩個集合
         #這邊會有問題，如果medianIdx==len(population)-1時，
         #會造成H為空集合，所以應該往下一層切

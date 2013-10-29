@@ -17,13 +17,16 @@ def defaultLinker(*args):
         return args[0]
     return args
 
+
 def sumLinker(*args):
     '''@return: the sum of all sub-ETs'''
     return sum(args)
 
+
 def andLinker(*args):
     '''@return: the AND of all given args'''
     return all(args)
+
 
 def orLinker(*args):
     '''@return: the OR of all given args'''

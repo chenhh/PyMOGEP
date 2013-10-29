@@ -30,12 +30,11 @@ def inversion(chro, inversionRate):
     genes = list(chro.genes)
 
     geneIdx = random.choice(xrange(len(chro.genes)))
-    idx1, idx2 = random.sample(xrange(chro.headLength), 2)
+    idx1, idx2 = random.sample(xrange(chro.headLength+1), 2)
     if idx1 > idx2:
         idx1, idx2 = idx2, idx1
 
-    # Create the new chromosome
-    changes = list(reversed(genes[geneIdx][idx1:idx2+1]))
+    changes = list(reversed(genes[geneIdx][idx1:idx2]))
     genes[geneIdx] = genes[geneIdx].modify( [[idx1, changes ]])
     return chro.newInstance(genes)
 
@@ -65,7 +64,7 @@ def transposeIS(chro, length, transposeISRate):
     idx2   = idx1 + length
     idx2   = chro.headLength if idx2 > chro.headLength else idx2
 
-    # Offset into tgtGeneIdx gene: in the headLength but not the root
+    #start idx of the tgtGeneIdx gene, but not the root
     tgtIdx1 = random.choice(xrange(1, chro.headLength))
 
     # Insert into the tgtGeneIdx gene's headLength
@@ -94,7 +93,8 @@ def transposeRIS(chro, length, transpositionRISRate):
     # For RIS, the sequence must begin with a function.
     try:
         idx1 = random.choice(
-            [idx for idx in xrange(geneLength) if callable(genes[srcGeneIdx][idx])]
+            [idx for idx in xrange(geneLength) 
+             if callable(genes[srcGeneIdx][idx])]
         )
     except IndexError: 
         # no functions after the idx1 of the source gene
@@ -104,7 +104,7 @@ def transposeRIS(chro, length, transpositionRISRate):
     idx2 = chro.headLength if idx2 > chro.headLength else idx2
     
     # Insert into the tgtGeneIdx gene's headLength at position 0
-    changes = genes[srcGeneIdx][idx1:idx2] + genes[tgtGeneIdx][:]
+    changes = genes[srcGeneIdx][idx1:idx2] + genes[tgtGeneIdx].alleles
     changes = changes[:chro.headLength] + genes[tgtGeneIdx][chro.headLength:]
     
     genes[tgtGeneIdx] = genes[tgtGeneIdx].modify([[0, changes],])
@@ -113,8 +113,8 @@ def transposeRIS(chro, length, transpositionRISRate):
 
 def transposeGene(chro, transpositionGeneRate):
     '''
-    Produces a new chro via gene transposition
-    @return: child chro
+    Produces a new chromosome via gene transposition
+    @return: child chromosome
     '''
     assert transpositionGeneRate
     if len(chro.genes) < 2:
@@ -124,8 +124,8 @@ def transposeGene(chro, transpositionGeneRate):
         return chro
     else:
         genes = list(chro.genes)
-        which = random.randint(1, len(genes)-1)
+        idx = random.randint(1, len(genes)-1)
         
         # Switch these genes
-        genes[0], genes[which] = genes[which], genes[0]
+        genes[0], genes[idx] = genes[idx], genes[0]
         return chro.newInstance(genes)
