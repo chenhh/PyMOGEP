@@ -11,7 +11,7 @@ multi-objective algorithm: NSGA-II
 from time import time
 import random
 from PyMOGEP.evolution.linker import defaultLinker
-from PyMOGEP.sort import JensenSort
+from PyMOGEP.sort import (JensenSort, DebSort)
 from PyMOGEP.evolution.selector import binaryTournamentSelection
 from PyMOGEP.evolution.crossover import *
 from PyMOGEP.evolution.mutator import *
@@ -89,7 +89,7 @@ class Population(object):
         [self._crowdingDistanceAssignment(front) for front in self.ParetoFronts]
         
         if self.verbose:
-            print "Num. of objctives:", self.n_objectives
+            print "n_objctives:", self.n_objectives
             print "initialize population, %.3f secs"%(time() - t0)
 
         # Compute stats about the initial generation
@@ -142,19 +142,27 @@ class Population(object):
     
     def _fastNonDominatedSort(self, population):
         '''@return all Pareto fronts (list of non-dominated set)'''
+        if self.n_objectives == 1:
+            population.sort(key=lambda chro: chro.fitnesses[0]) #ascending
+            ParetoFronts = [[population[0]], ]
+            population[0].ParetoRank = 1
+            for idx, chro in enumerate(population[1:]):
+                if chro.fitnesses[0] == population[idx].fitnesses[0]:
+                    chro.ParetoRank = population[idx].ParetoRank
+                    ParetoFronts[chro.ParetoRank-1].append(chro)
+                else:
+                    ParetoFronts.append([chro,])
+                    chro.ParetoRank = population[idx].ParetoRank + 1
+               
         if self.n_objectives == 2:
             ParetoFronts = JensenSort.twoObjectivesSweepAlgorithm(population)
-        else:
+        elif self.n_objectives > 2:
             ParetoFronts = JensenSort.highObjectivesNonDominatedSort(population)
+
         return ParetoFronts
     
     
     def evolution(self, population):
-        '''
-        -如果pop中有一個以上的chromosome的fitnesses為[0, 0] (2-obj)時，
-        -將只保留一個chromosome, 再用Pareto front rank 1中的chromosome
-        -來演化出fitnesses非[0,0]的chromosome
-        '''
         #inversion
         population = [inversion(chro, self.inversionRate) for chro in population]
         
@@ -242,11 +250,8 @@ class Population(object):
             if len(self.bestFront) > 0 and all(front.solved for front in self.bestFront):
                 break
             
-            print self
-            print "Generation:[%s] Best Pareto front[%s]:"%(self.gen, 
+            print "Generation:[%s] Best Pareto front[size:%s]:"%(self.gen, 
                                                             len(self.bestFront))
             for chro in self.bestFront:
-                print  chro.fitnesses, chro
-            
-            print "%.3f secs"%(time() - t0)
+                print  "1st rank:", chro.fitnesses
         

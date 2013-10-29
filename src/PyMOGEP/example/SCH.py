@@ -29,13 +29,19 @@ from time import time
 def Dataset(n_data=1000):
     func0 = lambda x: x**2
     func1 = lambda x: (x-2)**2
+    func2 = lambda x: (x-3)**2
+    func3 = lambda x: x
     lower, upper = -10**3, 10**3
     x = (upper-lower) * np.random.random((n_data)) + lower
-    f1 =func0(x)
-    f2 =func1(x)
-    return pd.DataFrame.from_dict({"x": x, 
-                                   "f1": f1,
-                                   "f2": f2}) 
+    f1 = func0(x)
+    f2 = func1(x)
+    f3 = func2(x)
+    f4 = func3(x)
+    return pd.DataFrame.from_dict({"x": x, "f1": f1, 
+#                                    "f2": f2,
+#                                    "f3": f3, 
+#                                    "f4": f4
+                                   }) 
 
 
 class SymbolicRegression(Chromosome):
@@ -46,8 +52,9 @@ class SymbolicRegression(Chromosome):
     def _fitnesses(self):
         '''fitness function'''
         error1 = 0.0
-        error2 = 0.0
-        
+#         error2 = 0.0
+#         error3 = 0.0
+#         error4 = 0.0
         # Evaluation of this chromosome
         guess = self.eval(Population.df)
 #         print  "len:", len(guess)
@@ -56,35 +63,39 @@ class SymbolicRegression(Chromosome):
 #         print "guess 1:", guess[1]
 #         print 
         error1 = np.sum(np.abs(guess[0] - Population.df['f1']))
-        error2 = np.sum(np.abs(guess[1] - Population.df['f2']))
+#         error2 = np.sum(np.abs(guess[0] - Population.df['f2']))
+#         error3 = np.sum(np.abs(guess[0] - Population.df['f3']))
+#         error4 = np.sum(np.abs(guess[0] - Population.df['f4']))
 #         print "e1:", error1, type(error1)
 #         print "e2:", error2, type(error2)
-        return (error1, error2)
+        return (error1, 
+#                 error2, error3, error4
+                )
     
     def _solved(self):
         '''termination condition'''
         return False
     
 
-def GEPAlgorithm(generations=10, popSize=1000, 
-                 headLength=4, n_genes=2):
+def GEPAlgorithm(generations=10, popSize=50, 
+                 headLength=4, n_genes=1):
     df = Dataset(10)
     print df
     t0 = time()
 
     Population.df = df
-    p = Population(SymbolicRegression, popSize, headLength, n_genes)
+    p = Population(SymbolicRegression, popSize, headLength, n_genes, verbose=False)
     p.solve(generations)
         
     #print final result
     print "best fitnesses:", 
     for chro in p.bestFront:
-        print "fitness:%s, %s, %s"%(chro.fitnesses, 
+        print "fitness:%s, len gene1: %s, len gene2: %s"%(chro.fitnesses, 
                                     chro.genes[0].evalLength, 
                                     chro.genes[1].evalLength)
         print "gene[0]:%s"%(chro.genes[0].evalRepr)
         print "gene[1]:%s"%(chro.genes[1].evalRepr)
-    print "5.3f secs"%(time()-t0)
+    print "%.3f secs"%(time()-t0)
 
 if __name__ == '__main__':
     

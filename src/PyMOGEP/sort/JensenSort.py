@@ -30,18 +30,20 @@ def twoObjectivCmpFunc(chro1, chro2):
     else:
         return -1
 
+
 def twoObjectivesSweepAlgorithm(population):
-    '''time complexity O(NlogN)
-    M: number of objective
-    N: number of data point
     '''
+    @param population, PyMOGEP.population
+    time complexity O(NlogN), N: population size
+    '''
+    
     #decreasing (dominating), O(NlogN)
     population.sort(cmp=twoObjectivCmpFunc, reverse=True)
     ParetoFronts =[[population[0]],]
     
     frontCounter = 0
     for chro in population[1:]:
-        #check current chromosome is not isDominated by 
+        #check if current chromosome is dominated by 
         #any chromosome in ParetoFronts[frontCounter]
         isDominated = False
         for frontChro in ParetoFronts[frontCounter]:
@@ -58,32 +60,27 @@ def twoObjectivesSweepAlgorithm(population):
             ParetoFronts[frontCounter].append(chro)
             
         else:
-            #find lowest front b 
-            # s.t. any chromosome in Paretofronts[b] not dominating the chromosome
+            #find lowest front b such that
+            # any chromosome in Paretofronts[b] not dominating the chromosome
             b = 0
-            for cnt in xrange(frontCounter+1):
-                if not any(frontChro2.dominating(chro) for 
-                                frontChro2 in ParetoFronts[cnt]):
-                    b = cnt
+            for level in xrange(frontCounter+1):
+                if not any(chro2.dominating(chro) for chro2 in ParetoFronts[level]):
+                    b = level
                     break
             ParetoFronts[b].append(chro)
     return ParetoFronts
 
 
 def highObjectivesNonDominatedSort(population):
-    '''
-    @param points: set for non-dominated sort
-    @param M: number of objectives or idx of objectives 
-    '''
-    #computing Pareto rank of each point
-    M = population[0].n_objectives
-    assert M > 2
+    '''@param population, PyMOGEP.population'''
     
-    #initialize
+    assert population[0].n_objectives > 2
+    
+    #initialize rank
     for chro in population:
         chro.ParetoRank = 1
     
-    ND_helper_A(population, M)
+    ND_helper_A(population)
     
     #allocating each point to corresponding front    
     n_front = max(chro.ParetoRank for chro in population)
@@ -95,34 +92,34 @@ def highObjectivesNonDominatedSort(population):
 
 def splitSet(population):
     '''
-    @return medianIdx: sorted population，第M個objective的中位數的索引值
-    -如果value[medianIdx] == value[mediaIdx+1]時，medianIdx +=1，直到list結尾
+    split population according to m-th objective value.
+    @return median index of m-th objective value.
     '''
-    popSize = population.popSize
+    popSize = len(population)
     n_objectives = population[0].n_objectives
     
-    midIdx  = (popSize-1)/2 if popSize % 2 else popSize/2 - 1
-    
-    #小於等於median的points分類L, 大於median的points為H
-    #H當中的所有元素絕對不可能dominating L中的任一點(minimizing objective)
-    for odx in reversed(xrange(n_objectives)):
-        population.sort(key = lambda chro: chro.fitnesses[odx])
-        values = [chro.fitnesses[odx] for chro in population]
+    midPopIdx  = (popSize-1)/2 if popSize % 2 else popSize/2 - 1
+
+    #all object in set H will not dominating L
+    for objectiveIdx in reversed(xrange(n_objectives)):
+        population.sort(key = lambda chro: chro.fitnesses[objectiveIdx])
+        values = [chro.fitnesses[objectiveIdx] for chro in population]
         
-        medianIdx = bisect.bisect_right(values, values[midIdx])
+        medianIdx = bisect.bisect_right(values, values[midPopIdx])
         if medianIdx != popSize:
-            return medianIdx-1, odx+1
-            #因為values[halfidx]一定在list內，所以medianIdx==popSize
-            #表示往後切不開，要往前切
+            return medianIdx-1, objectiveIdx
         else:
-            medianIdx = bisect.bisect_left(values, values[midIdx])
+            #we can't split the list after index midPopIdx, 
+            #hence, we try to split it beroe the midPopIdx
+            medianIdx = bisect.bisect_left(values, values[midPopIdx])
             if medianIdx != 0:
-                return medianIdx-1, odx+1
-    #表示此集合的元素元全相同
-    return -1, 0
+                return medianIdx-1, objectiveIdx
+    
+    #all fitness values in the population are the same
+    return -1, -1
 
 
-def ND_helper_A(population, objectiveIdx):
+def ND_helper_A(population):
     '''
     split population to two sets, L and H, according to objectives[objectiveIdx]
     1. find the median of objectives[objectiveIdx]
@@ -130,9 +127,13 @@ def ND_helper_A(population, objectiveIdx):
        the median 
     3. the objectives[objectiveIdx] of all chromosomes in set H are large than
        the median
+       
+    the chromosome in set H are impossible to dominate the chromosome in set L
+    (because the m-th objective value of chromosome in set H are larger than 
+    the m-th objectivce value of chromsome in set L)
     '''
-    popSize = population.popSize
-   
+    popSize = len(population)
+    
     if popSize == 2:
         # stop condition
         if population[0].dominating(population[1]):
@@ -141,55 +142,48 @@ def ND_helper_A(population, objectiveIdx):
         elif  population[1].dominating(population[0]):
             population[0].ParetoRank = max(population[0].ParetoRank, 
                                            population[1].ParetoRank+1)
-        
+    
     elif popSize > 2:
-        #大於兩個點時，將points依第M個objective切成L, H兩個集合
-        #這邊會有問題，如果medianIdx==len(population)-1時，
-        #會造成H為空集合，所以應該往下一層切
-        medianIdx, newM = splitSet(population)
-        
+        medianIdx, objectiveIdx = splitSet(population)
         if medianIdx == -1:
-            #全部fitness值都相同，直接return
+            #all fitess values in the population are the same
             return
         
         L, H = population[:medianIdx+1], population[medianIdx+1:]
         
-        #檢查L集合那些點有dominating關係
-        ND_helper_A(L, newM )       
-        #在L集合中的point的Pareto rank已確定後，以此為基礎計算H中 point之Pareto rank
-        ND_helper_B(L, H, newM-1)
-        #檢查H集合那些點有dominating關係
-        ND_helper_A(H, newM)
+        #check dominating relations in set L, and computing Pareto rank
+        ND_helper_A(L)
+        #merge
+        ND_helper_B(L, H, objectiveIdx-1)
+        #check dominating relations in set H
+        ND_helper_A(H)
         
 
-def ND_helper_B(L, H, M):
+def ND_helper_B(L, H, objectiveIdx):
     '''
     the procedure assigns Pareto rank to the solutions in H 
     according to the solutions in L.
-    假設所有L集合中的point之Pareto rank均為正確值
+    assumpting all Pareto rank of the chromosome in set L are assigned.
     
     '''
     if len(L) == 1:
-        #如果L[0] dominating H中的點，則更新H中point之ParetoRank, 只有H的rank會改變
+        #stop condition
         for chro in H:
-            if L[0].fitnessesDominating(chro):
+            if L[0].dominating(chro):
                 chro.ParetoRank = max(chro.ParetoRank, L[0].ParetoRank+1)
                 
     elif len(H) == 1:
-        #如果L中的point dominating H[0]，則更新H[0]之ParetoRank
+        #stop condition 
         for chro in L:
-            if chro.fitnessesDominating(H[0]):
-#            if chro.dominatingM(H[0], M):
+            if chro.dominating(H[0]):
                 H[0].ParetoRank = max(chro.ParetoRank+1, H[0].ParetoRank)
                 
-              
-    elif 0<= M <= (L[0].numOfObjectives-1):
-        #TODO: 在這邊改成M<=len(objectives)-1速更會比再切下去更快
-        #merge, 只剩下兩個目標時，用sweep line algorithm直接求出Pareto rank
+    elif 0 <= objectiveIdx < L[0].n_objectives:
+        #for better performance, we don't split the set deeply. 
         L.sort(key=lambda chro: chro.ParetoRank, reverse=True)  #descending
         for chroH in H:
             for chroL in L:
-                if chroL.fitnessesDominating(chroH):
+                if chroL.dominating(chroH):
                     chroH.ParetoRank = max(chroL.ParetoRank+1, chroH.ParetoRank)
                     break
   
