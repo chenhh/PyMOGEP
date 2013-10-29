@@ -80,14 +80,20 @@ class Chromosome(object):
                                doc='number of objectives')
      
     @classmethod
-    def randomChromosome(cls, headLength, numOfGenes=1, linker=defaultLinker):
+    def randomChromosome(cls, headLength, numOfGenes=1, linker=defaultLinker, RNC=False):
         # class method for randomly generate genes of the chromosome
         tail = headLength * (cls.arity - 1) + 1
 
         newGenes = [None] * numOfGenes
+        if RNC:
+            symbols = list(cls.symbols) + ['?',]
+            terminals = list(cls.terminals) + ['?',]
+        else:
+            symbols = cls.symbols
+            terminals = cls.terminals
         for idx in xrange(numOfGenes):
-            headAlleles = [random.choice(cls.symbols)   for _ in xrange(headLength)]
-            tailAlleles = [random.choice(cls.terminals) for _ in xrange(tail)]            
+            headAlleles = [random.choice(symbols)   for _ in xrange(headLength)]
+            tailAlleles = [random.choice(terminals) for _ in xrange(tail)]            
             newGenes[idx] = cls.gene_type(headAlleles + tailAlleles, headLength)
         return cls(newGenes, headLength, linker)
 

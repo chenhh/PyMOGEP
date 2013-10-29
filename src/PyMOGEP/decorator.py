@@ -48,37 +48,37 @@ def cache(func):
 
     return decorator
 
-
-def memory(func):
-    '''
-    cache result of the class member method which has exact one argument. 
-    self._{method}_memory where {method} is the  name of the method.
-    
-    Note that the arg must be hashable, thus lists can't be memoized.  
-    The name of the memoized attribute is stored on the method 
-    itself as func.memory.
-    usage:
-        @memoize
-        def _compute_something(self, arg):
-            ...
-            return 'something'
-    '''
-    func.memory = memory_name = '_%s_memory' %( func.func_name)
-    
-    @functools.wraps(func)
-    def decorator(self, key):
-        '''Assigns a memo hash to self on demand'''
-        try:
-            memo = getattr(self, memory_name)
-        except AttributeError:
-            # Haven't memoized anything yet
-            memo = {}
-            setattr(self, memory_name, memo)
-        
-        try:
-            return memo[key]
-        except KeyError:
-            # Haven't seen this key yet
-            memo[key] = results = func(self, key)
-            return results
-    return decorator
+# 
+# def memory(func):
+#     '''
+#     cache result of the class member method which has exact one argument. 
+#     self._{method}_memory where {method} is the  name of the method.
+#     
+#     Note that the arg must be hashable, thus lists can't be memoized.  
+#     The name of the memoized attribute is stored on the method 
+#     itself as func.memory.
+#     usage:
+#         @memoize
+#         def _compute_something(self, arg):
+#             ...
+#             return 'something'
+#     '''
+#     func.memory = memory_name = '_%s_memory' %( func.func_name)
+#     
+#     @functools.wraps(func)
+#     def decorator(self, key):
+#         '''Assigns a memo hash to self on demand'''
+#         try:
+#             memo = getattr(self, memory_name)
+#         except AttributeError:
+#             # Haven't memoized anything yet
+#             memo = {}
+#             setattr(self, memory_name, memo)
+#         
+#         try:
+#             return memo[key]
+#         except KeyError:
+#             # Haven't seen this key yet
+#             memo[key] = results = func(self, key)
+#             return results
+#     return decorator

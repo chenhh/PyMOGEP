@@ -8,7 +8,7 @@ C. Ferreira, "Gene Expression Programming: A New Adaptive Algorithm for
 Solving Problems.," Complex Systems, vol. 13, pp. 87-129, 2001.
 '''
 import copy
-from PyMOGEP.decorator import (memory, cache)
+from PyMOGEP.decorator import cache
 
 class Gene(object):
     '''GEP gene class, a chromosome can contain many genes, and they 

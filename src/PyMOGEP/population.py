@@ -44,7 +44,7 @@ class Population(object):
     )
 
     def __init__(self, chro, popSize, headLength, n_genes=1, n_elites=1,
-                 linker=defaultLinker, verbose=False):
+                 linker=defaultLinker, RNC=False, verbose=False):
         '''
         @param chro, PyMOGEP.chromosome, user defined chromosome
         @param popSize, positive integer, population size
@@ -61,6 +61,7 @@ class Population(object):
         self.linker = linker
         self._gen = 0
         self.selector = binaryTournamentSelection
+        self.RNC = RNC
         self.verbose = verbose
         
         # population initialization, 
@@ -68,7 +69,7 @@ class Population(object):
         self.population = []
         t0 = time()
         while len(self.population) < popSize:
-            chro = chro.randomChromosome(headLength, n_genes, linker)
+            chro = chro.randomChromosome(headLength, n_genes, linker, RNC)
             zero = True
             for val in chro.fitnesses:
                 if val != 0.0:
