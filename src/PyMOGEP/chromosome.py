@@ -173,7 +173,7 @@ class Chromosome(object):
         chro_str = 'ID:[%s]:%s genes:%s'%(
             self.chromosomeID,
             ''.join(repr(g) for  g in self.genes),
-            ''.join("[%s]:%s "%(idx, g.reprCodingRegion()) 
+            ''.join("[%s]:%s "%(idx, g.evalRepr) 
                                 for idx, g in enumerate(self.genes))
             )
         return chro_str

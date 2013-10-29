@@ -44,7 +44,9 @@ class Gene(object):
         
         for allele in self.alleles[self.headLength:]:
             if callable(allele):
-                raise ValueError('illegal gene.')
+                errmsg = 'illegal gene, gene length:%s, head length:%s, alleles:%s'%(
+                        len(self.alleles), self.headLength, self.alleles)
+                raise ValueError(errmsg)
             
             
     def _evalLength(self):
@@ -189,7 +191,8 @@ def testGene():
     print g
     print g.evalRepr
     print g.evalLength
-
+    print g[:3]
+    print g[:3][:2]
 
 
 if __name__ == '__main__':

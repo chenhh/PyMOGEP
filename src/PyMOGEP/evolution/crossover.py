@@ -24,8 +24,9 @@ def crossoverPairs(popSize, crossoverRate):
     assert 0 < crossoverRate <= 1.
     
     if crossoverRate and popSize >= 2:
-        indices = random.shuffle([idx for idx in xrange(popSize) 
-                   if random.random() < crossoverRate])
+        indices = [idx for idx in xrange(popSize) 
+                   if random.random() < crossoverRate]
+        random.shuffle(indices)
         
         if len(indices) % 2: 
             indices = indices[:-1]

@@ -44,7 +44,7 @@ def transposeIS(chro, length, transposeISRate):
     '''
     Produces a new chromosome via IS (insertion sequence) transposition
     copy a randomly chosen seq. from idx1 with given length, 
-    and overwrite the seq. idx1 from idx2  of the same chromosome
+    and overwrite the seq. from idx1 to idx2  of the same chromosome
     
     @param length: sequence length (typically 1, 2, or 3)
     @return: a new chromosome
@@ -54,23 +54,24 @@ def transposeIS(chro, length, transposeISRate):
     if chro.headLength < 2 or random.random() >= transposeISRate:
         return chro
    
-    # Pick srcGene and tgtGene genes
+    # Pick srcGeneIdx and tgtGeneIdx genes
     genes  = list(chro.genes)
-    srcGene = random.choice(genes)   
-    tgtGene = random.choice(xrange(len(genes)))
+    geneLength = len(genes)
+    srcGeneIdx = random.choice(xrange(geneLength))   
+    tgtGeneIdx = random.choice(xrange(geneLength))
 
     # Extract a transposition sequence.
-    idx1 = random.choice(xrange(len(srcGene)))
+    idx1 = random.choice(xrange(geneLength))
     idx2   = idx1 + length
     idx2   = chro.headLength if idx2 > chro.headLength else idx2
 
-    # Offset into tgtGene gene: in the headLength but not the root
-    offset = random.choice(xrange(1, chro.headLength))
+    # Offset into tgtGeneIdx gene: in the headLength but not the root
+    tgtIdx1 = random.choice(xrange(1, chro.headLength))
 
-    # Insert into the tgtGene gene's headLength
-    changes = srcGene[idx1:idx2][:chro.headLength-offset] + \
-                  genes[tgtGene][offset:chro.headLength-idx2+idx1]
-    genes[tgtGene] = genes[tgtGene].modify([[idx1, changes]])
+    # Insert into the tgtGeneIdx gene's headLength
+    changes = genes[srcGeneIdx][idx1:idx2][:chro.headLength-tgtIdx1] + \
+                genes[tgtGeneIdx][tgtIdx1:chro.headLength-idx2+idx1]
+    genes[tgtGeneIdx] = genes[tgtGeneIdx].modify([[idx1, changes],])
     return chro.newInstance(genes)
 
 
@@ -83,28 +84,32 @@ def transposeRIS(chro, length, transpositionRISRate):
     assert transpositionRISRate
     if random.random() >= transpositionRISRate:
         return chro
-    else:
-        # Pick source and target genes
-        genes  = list(chro.genes)
-        source = random.choice(genes)
-        target = random.choice(xrange(len(genes)))
-        
-        # Extract a transposition sequence. Truncate if required.
-        # For RIS the sequence must begin with a function.
-        try:
-            start = random.choice(
-                [idx for idx in xrange(len(source)) if callable(source[idx])]
-            )
-        except IndexError: # no functions!
-            return chro
-        
-        end = start + length
-        end = chro.headLength if end > chro.headLength else end
-        
-        # Insert into the target gene's headLength at position 0
-        replacement   = source[start:end] + genes[target][:chro.headLength+start-end]
-        genes[target] = genes[target].modify([[start, replacement]])
-        return chro.newInstance(genes)
+    
+    genes  = list(chro.genes)
+    geneLength = len(genes)
+    srcGeneIdx = random.choice(xrange(geneLength))
+    tgtGeneIdx = random.choice(xrange(geneLength))
+    
+    # Extract a transposition sequence. Truncate if required.
+    # For RIS, the sequence must begin with a function.
+    try:
+        idx1 = random.choice(
+            [idx for idx in xrange(geneLength) if callable(genes[srcGeneIdx][idx])]
+        )
+    except IndexError: 
+        # no functions after the idx1 of the source gene
+        return chro
+    
+    idx2 = idx1 + length
+    idx2 = chro.headLength if idx2 > chro.headLength else idx2
+    
+    # Insert into the tgtGeneIdx gene's headLength at position 0
+    changes = genes[srcGeneIdx][idx1:idx2] + genes[tgtGeneIdx][:]
+    changes = changes[:chro.headLength] + genes[tgtGeneIdx][chro.headLength:]
+    
+    genes[tgtGeneIdx] = genes[tgtGeneIdx].modify([[0, changes],])
+    return chro.newInstance(genes)
+
 
 def transposeGene(chro, transpositionGeneRate):
     '''
