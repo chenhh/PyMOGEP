@@ -227,7 +227,7 @@ class PrefixGene(Gene):
                 argCount = 0
                 evalStack.append(allele)
             
-            if isinstance(allele, str):
+            elif isinstance(allele, str):
                 #allele is a variable 
                 if allele != '?':
                     allele = df[allele]
@@ -236,7 +236,7 @@ class PrefixGene(Gene):
                 argCount += 1
                 evalStack.append(allele)
         
-           
+            #stack traceback
             while len(arity) and argCount == arity[-1]:
                 operands = [evalStack.pop() for _ in xrange(arity[-1])][::-1]
                 operator = evalStack.pop()
