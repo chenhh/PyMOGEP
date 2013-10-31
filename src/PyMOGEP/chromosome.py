@@ -80,12 +80,12 @@ class Chromosome(object):
                                doc='number of objectives')
      
     @classmethod
-    def randomChromosome(cls, headLength, numOfGenes=1, linker=defaultLinker, RNC=False):
-        # class method for randomly generate genes of the chromosome
+    def randomChromosome(cls, headLength, numOfGenes=1, 
+                         linker=defaultLinker, RNCGenerator=None):
+        '''class method for randomly generate genes of the chromosome'''
         tail = headLength * (cls.arity - 1) + 1
-
         newGenes = [None] * numOfGenes
-        if RNC:
+        if RNCGenerator:
             symbols = list(cls.symbols) + ['?',]
             terminals = list(cls.terminals) + ['?',]
         else:
@@ -94,14 +94,16 @@ class Chromosome(object):
         for idx in xrange(numOfGenes):
             headAlleles = [random.choice(symbols)   for _ in xrange(headLength)]
             tailAlleles = [random.choice(terminals) for _ in xrange(tail)]            
-            newGenes[idx] = cls.gene_type(headAlleles + tailAlleles, headLength)
-        return cls(newGenes, headLength, linker)
+            newGenes[idx] = cls.gene_type(headAlleles + tailAlleles, headLength,
+                                           RNCGenerator = RNCGenerator)
+        return cls(newGenes, headLength, linker, RNCGenerator = RNCGenerator)
 
-    def __init__(self, genes, headLength, linker=defaultLinker):
+    def __init__(self, genes, headLength, linker=defaultLinker, RNCGenerator=None):
         '''
         @param genes: list of genes in the chro
         @param headLength: integer, length (not index) of the gene heads
         @param linker: linker function for gene evaluation
+        @param RNCGenerator, random number generator for RNC algorithm
         '''
         if headLength < 0:
             raise ValueError('Head length must be >= 0')
@@ -111,12 +113,13 @@ class Chromosome(object):
         self.genes = genes
         self.headLength = headLength
         self.linker = linker
-       
+        self.RNCGenerator = RNCGenerator
+        
         self.ParetoRank = None       # setting in evolution
         self.crowdingDistance = None # setting in evolution
         self.dominatedCount = None   # setting in evolution
         self.dominatingSet = None    # setting in evolution
-     
+        
         self._id = type(self)._id_counter
         type(self)._id_counter += 1
 
@@ -192,7 +195,7 @@ class Chromosome(object):
         @return: a child chromosome of self
         '''
         return self if genes == self.genes \
-            else type(self)(genes, self.headLength, self.linker)
+            else type(self)(genes, self.headLength, self.linker, self.RNCGenerator)
 
 
     def eval(self, df):

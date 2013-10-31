@@ -8,6 +8,7 @@ C. Ferreira, "Gene Expression Programming: A New Adaptive Algorithm for
 Solving Problems.," Complex Systems, vol. 13, pp. 87-129, 2001.
 '''
 import copy
+import random
 from PyMOGEP.decorator import cache
 
 class Gene(object):
@@ -15,11 +16,11 @@ class Gene(object):
     are linked by the linker function
     '''
 
-    def __init__(self, alleles, headLength, Dc=None):
+    def __init__(self, alleles, headLength, RNCGenerator=None):
         '''
         @param alleles: list, symbol of function and terminal
         @param headLength: integer, head length of the gene
-        @param Dc: None or list, numerical constants
+        @param RNCGenerator, random number generator for RNC algorithm
         
         @ivar evalLength: integer, number of alleles used after evaluating the gene
         @ivar _evalAlleles: list,  partial elements of the alleles
@@ -27,13 +28,16 @@ class Gene(object):
         '''
         self.alleles = alleles
         self.headLength = headLength
-        self.Dc = Dc
+        self.tailLength = len(self.alleles) - headLength
+        self.RNCGenerator = RNCGenerator
+        if RNCGenerator:
+            self.Dc = [RNCGenerator() for _ in xrange(self.tailLength)] 
         
         self.evalLength = 0
         self._evalAlleles = None
         self._evalLength()
         self._legalForm()
-            
+        
         self.evalRepr = None
         self.evalResultArr = None
     
@@ -78,15 +82,17 @@ class Gene(object):
         '''
         self._evalLength()
 
-        
-      
         jdx = self.evalLength
         for idx in reversed(xrange(jdx)):
+            
             allele = self._evalAlleles[idx]
             #replace variable to corresponding array
             if isinstance(allele, str):
-                self._evalAlleles[idx] = df[allele]
-                
+                if allele != '?':
+                    self._evalAlleles[idx] = df[allele]
+                else:
+                    self._evalAlleles[idx] = self.Dc[idx - self.headLength - 1]
+                    
             # if allele is a function
             if callable(allele):
                 arity = allele.func_code.co_argcount
@@ -130,7 +136,7 @@ class Gene(object):
         
         # the gene is changed, and it modifies the evaluate region
         if not same:
-            gene = type(self) (new, self.headLength)
+            gene = type(self) (new, self.headLength, self.RNCGenerator)
         # the gene is changed, but it not modifies the evaluate region
         else:
             gene = copy.copy(self)
@@ -155,14 +161,18 @@ class Gene(object):
         
         gene_str = ''
         for idx, allele in enumerate(self.alleles):
-            # get symbol of the function (add by symbol decorator)
             try:
+                # get symbol of function (added by symbol decorator)
                 name = allele.symbol
             except AttributeError:
                 try:
+                    #get function name
                     name = allele.__name__
                 except AttributeError:
-                    name = str(allele)
+                    if allele == '?':
+                        name = self.Dc[idx-self.headLength-1]  
+                    else: 
+                        name = str(allele)
 
             # surrounding each allele with [], 
             gene_str = "".join((gene_str, '[%s]' % name))

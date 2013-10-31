@@ -16,13 +16,14 @@ objective functions:
 
 optimal solution: x in [0, 2]
 '''
+
 from PyMOGEP.chromosome import Chromosome
 from PyMOGEP.population import Population
 from PyMOGEP.function.arithmetic import *
 from PyMOGEP.evolution.linker import *
-import random
 import pandas as pd
 import numpy as np
+import random
 from time import time
 
 
@@ -38,7 +39,7 @@ def Dataset(n_data=1000):
     f3 = func2(x)
     f4 = func3(x)
     return pd.DataFrame.from_dict({"x": x, "f1": f1, 
-#                                    "f2": f2,
+                                    "f2": f2,
 #                                    "f3": f3, 
 #                                    "f4": f4
                                    }) 
@@ -51,26 +52,20 @@ class SymbolicRegression(Chromosome):
 
     def _fitnesses(self):
         '''fitness function'''
-        error1 = 0.0
-#         error2 = 0.0
-#         error3 = 0.0
-#         error4 = 0.0
+
         # Evaluation of this chromosome
         guess = self.eval(Population.df)
-#         print  "len:", len(guess)
-#         print "type:", type(guess[0]), type(guess[1])
-#         print "guess 0:", guess[0]
-#         print "guess 1:", guess[1]
-#         print 
-        error1 = np.sum(np.abs(guess[0] - Population.df['f1']))
-#         error2 = np.sum(np.abs(guess[0] - Population.df['f2']))
-#         error3 = np.sum(np.abs(guess[0] - Population.df['f3']))
-#         error4 = np.sum(np.abs(guess[0] - Population.df['f4']))
-#         print "e1:", error1, type(error1)
-#         print "e2:", error2, type(error2)
-        return (error1, 
-#                 error2, error3, error4
-                )
+
+        try:
+            error = ( np.sum(np.abs(guess[0] - Population.df['f1'])),
+                      np.sum(np.abs(guess[1] - Population.df['f2']))
+                      )
+            return error
+        
+        except Exception as e:
+            print e
+            return (float('inf'), float('inf'))
+        
     
     def _solved(self):
         '''termination condition'''
@@ -78,13 +73,14 @@ class SymbolicRegression(Chromosome):
     
 
 def GEPAlgorithm(generations=10, popSize=50, 
-                 headLength=4, n_genes=1):
+                 headLength=4, n_genes=2):
     df = Dataset(10)
     print df
     t0 = time()
 
     Population.df = df
-    p = Population(SymbolicRegression, popSize, headLength, n_genes, verbose=False)
+    p = Population(SymbolicRegression, popSize, headLength, n_genes,
+                   n_elites=2, RNCGenerator=np.random.randn, verbose=True)
     p.solve(generations)
         
     #print final result
@@ -93,12 +89,16 @@ def GEPAlgorithm(generations=10, popSize=50,
         print "fitness:%s, len gene1: %s, len gene2: %s"%(chro.fitnesses, 
                                     chro.genes[0].evalLength, 
                                     chro.genes[1].evalLength)
+        print chro
         print "gene[0]:%s"%(chro.genes[0].evalRepr)
         print "gene[1]:%s"%(chro.genes[1].evalRepr)
     print "%.3f secs"%(time()-t0)
 
 if __name__ == '__main__':
-    
+#     import sys
+#     sys.path.append('/home/chenhh/workspace_eclipse/PyMOGEP/src')
+#     print sys.path
 #    import cProfile
 #    cProfile.run('GEPAlgorithm()')
+    
     GEPAlgorithm()

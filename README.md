@@ -3,4 +3,4 @@ PyMOGEP
 
 python multi-objective gene expression programming
 
-requirement python package: numpy, pandas
+required python package: numpy, pandas

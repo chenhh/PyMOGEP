@@ -21,8 +21,8 @@ from PyMOGEP.evolution.comparison import *
 
 class Population(object):
     '''population of GEP chromosomes'''
-    # parameters of GEP
     
+    # parameters of GEP
     mutationRate = 0.6 
     inversionRate = 0.1
     transISRate = 0.1
@@ -33,25 +33,26 @@ class Population(object):
     crossoverOnePointRate = 0.3
     crossoverTwoPointsRate = 0.3
     crossoverGeneRate = 0.1
-    runStatistics = False
+    df = None   #data frame
     
-    df = None
-    
-    gen = property(lambda self: self._gen, doc='Generation number')
+    gen = property(lambda self: self._gen, doc='Generation')
     bestFront = property(
         lambda self: self.ParetoFronts[0],
         doc='The best Pareto front'
     )
 
     def __init__(self, chro, popSize, headLength, n_genes=1, n_elites=1,
-                 linker=defaultLinker, RNC=False, verbose=False):
+                 linker=defaultLinker, RNCGenerator=None, verbose=False):
         '''
         @param chro, PyMOGEP.chromosome, user defined chromosome
         @param popSize, positive integer, population size
         @param headLength, positive integer, head length of a gene
-        @param n_genes, positive integer, num. of genes of a chromsome
-        @param n_elites, positive integer, num. of better genes preserve in each gen.
-        @param linker, linker function for connecting genes
+        @param n_genes, positive integer, number of gene of a chromsome
+        @param n_elites, positive integer, number of better front preserved 
+                                           in each generation.
+        @param linker, PyMOGEP.evolution.linker, 
+                       linker function for connecting genes
+        @param RNCGenerator, random number generator for RNC algorithm
         '''
         assert popSize > 0 and headLength > 0 and n_genes > 0
         self.popSize = popSize
@@ -61,25 +62,24 @@ class Population(object):
         self.linker = linker
         self._gen = 0
         self.selector = binaryTournamentSelection
-        self.RNC = RNC
+        self.RNCGenerator = RNCGenerator
         self.verbose = verbose
         
-        # population initialization, 
-        # note: we don't want the chromosomes with fitnesses are all zeros
+        #population initialization, each chromosome with different fitness values.
         self.population = []
         t0 = time()
+        fitness_set = set()
         while len(self.population) < popSize:
-            chro = chro.randomChromosome(headLength, n_genes, linker, RNC)
-            zero = True
-            for val in chro.fitnesses:
-                if val != 0.0:
-                    zero = False
-                    break
-            if not zero:
+            chro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
+            if chro.fitnesses not in fitness_set:
+                fitness_set.add(chro.fitnesses)
                 self.population.append(chro)
         
         if self.verbose:
-            print "initialized random population, %.3f secs"%(time() - t0)
+            for chro in self.population:
+                print "ID:[%s], fitnesses:%s"%(chro.chromosomeID, chro.fitnesses)
+                print chro
+            print "random population initialized, %.3f secs"%(time() - t0)
         
         # placeholder for next generation
         self._nextPopulation = [] 
@@ -93,13 +93,7 @@ class Population(object):
             print "n_objctives:", self.n_objectives
             print "initialize population, %.3f secs"%(time() - t0)
 
-        # Compute stats about the initial generation
-        if self.runStatistics:
-            self.means = [float('inf')] * self.n_objectives
-            self.stdevs = [float('inf')] * self.n_objectives
-            self._updateStats()
-      
-    
+
     def _crowdingDistanceAssignment(self, nonDominatedSet):
         '''       
         The overall crowding-distance value is calculated as
@@ -214,7 +208,14 @@ class Population(object):
         
         # fill out the next population set
         self._nextPopulation = []
-        idx = 0 
+        
+        #preserve elite Pareto front
+        for idx in xrange(self.n_elites):
+            self._nextPopulation.extend(
+                self._crowdingDistanceAssignment(mixedParetoFronts[idx])
+            )
+        
+        idx = self.n_elites 
         while (len(self._nextPopulation) + len(mixedParetoFronts[idx])) <= self.popSize:
             self._nextPopulation.extend(
                     self._crowdingDistanceAssignment(mixedParetoFronts[idx])
@@ -222,7 +223,7 @@ class Population(object):
             idx += 1
         self._crowdingDistanceAssignment(mixedParetoFronts[idx])
 
-        # descending order
+        #fullfill the popSize
         mixedParetoFronts[idx].sort(cmp=partialOrder, reverse=True)
         reminderLength = self.popSize - len(self._nextPopulation)
         self._nextPopulation.extend(mixedParetoFronts[idx][:reminderLength])
@@ -236,8 +237,7 @@ class Population(object):
         
         # update information
         self._gen += 1
-        if self.runStatistics:
-            self._updateStats()
+     
  
     def solve(self, n_generation):
         '''
@@ -248,11 +248,12 @@ class Population(object):
             t0 = time()
             self.evolve()
             
-            if len(self.bestFront) > 0 and all(front.solved for front in self.bestFront):
+            if len(self.bestFront) > 0 and all(chro.solved for chro in self.bestFront):
                 break
             
-            print "Generation:[%s] Best Pareto front[size:%s]:"%(self.gen, 
-                                                            len(self.bestFront))
+            print "Generation:[%s] %.3f secs, Best Pareto front size:%s:"%(
+                    self.gen, time()-t0, len(self.bestFront))
+            
             for chro in self.bestFront:
                 print  "1st rank:", chro.fitnesses
         
