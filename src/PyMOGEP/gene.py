@@ -195,15 +195,21 @@ class Gene(object):
         return self.alleles[idx]
 
 def testGene():
+    import pandas as pd
     from PyMOGEP.function.arithmetic import (
             op_add, op_substract, op_multiply, op_divide)
-    g = Gene([ op_add, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
+    g = Gene([ op_substract, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
     print g
     print g.evalRepr
     print g.evalLength
     print g[:3]
     print g[:3][:2]
 
-
+    x = [1,2,3]
+    y = [4,5,6]
+    df = pd.DataFrame.from_dict({"x": x, "y": y})
+    print "df:\n", df
+    print "eval:\n",g.eval(df)
+    
 if __name__ == '__main__':
     testGene()
