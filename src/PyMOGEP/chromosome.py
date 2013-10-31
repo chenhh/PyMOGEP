@@ -9,7 +9,7 @@ from PyMOGEP.evolution.linker import defaultLinker
 from PyMOGEP.decorator import cache
 import random
 import itertools
-from PyMOGEP.gene import Gene
+from PyMOGEP.gene import (Gene,)
 
 
 class MetaChromosome(type):

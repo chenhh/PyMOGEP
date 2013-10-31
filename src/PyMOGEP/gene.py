@@ -215,18 +215,16 @@ class PrefixGene(Gene):
         super(PrefixGene, self).__init__(alleles, headLength, RNCGenerator)
         
     def eval(self, df):
-        '''
-        alleles: [+, x, +, y, x ]
-        '''
+        '''prefix order to parse the chromsome'''
         self._evalLength()
         
         evalStack = []
-        
-        arity, varCount = [], 0
+        arity, argCount = [], 0
         for idx, allele in enumerate(self._evalAlleles):
             if callable(allele):
                 #allele is a function
                 arity.append(allele.func_code.co_argcount)
+                argCount = 0
                 evalStack.append(allele)
             
             if isinstance(allele, str):
@@ -235,37 +233,50 @@ class PrefixGene(Gene):
                     allele = df[allele]
                 else:
                     allele = self.Dc[idx - self.headLength - 1]
-                varCount += 1
+                argCount += 1
                 evalStack.append(allele)
         
-            while varCount == arity[-1]:
-                operands = [evalStack.pop() for _ in xrange(arity)]
+           
+            while len(arity) and argCount == arity[-1]:
+                operands = [evalStack.pop() for _ in xrange(arity[-1])][::-1]
                 operator = evalStack.pop()
                 evalStack.append(operator(*operands))
+
+                argCount = argCount - arity[-1] + 1
+                for op in reversed(evalStack[:-1]):
+                    if not callable(op):
+                        argCount += 1
+                    else:
+                        break
+
+                arity.pop()
                 
-                #use two variables to get a value
-                varCount = varCount - len(operands) + 1
-                arity.pop() 
+            if not arity:
+                assert len(evalStack) == 1
+                return evalStack[0]   
                 
 
 def testGene():
     import pandas as pd
+    import numpy as np
     from PyMOGEP.function.arithmetic import *
     from PyMOGEP.function.power import *
-    expr = [op_root, op_multiply, op_substract, op_add, 'x', 'x', 'y', 'y' ]
-    
-    g = Gene([ op_substract, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
-    g2 = PrefixGene([ op_substract, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
-    print "Gene:%s, prefix: %s"%(g, g2)
-    print "eval Gene:%s, prefix: %s"%(g.evalRepr, g2.evalRepr)
-    print g.evalLength, g2.evalLength
+#     expr = [op_root, op_multiply, op_substract, op_add, 'x', 'x', 'y', 'y' ]
+    expr = [op_substract, op_multiply, 'x', op_multiply, 'x', 'y', 'x']
+#     g = Gene(expr, 4)
+    g2 = PrefixGene(expr, 4, RNCGenerator=np.random.randn)
+#     print "Gene:%s, prefix: %s"%(g, g2)
+#     print "eval Gene:%s, prefix: %s"%(g.evalRepr, g2.evalRepr)
   
 
-#     x = [1,2,3]
-#     y = [4,5,6]
-#     df = pd.DataFrame.from_dict({"x": x, "y": y})
-#     print "df:\n", df
-#     print "eval:\n",g.eval(df)            
+    x = [3.,6.,9.]
+    y = [4.,5.,6.]
+    df = pd.DataFrame.from_dict({"x": x, "y": y}, dtype=np.float)
+    print "df:\n", df
+    print "eval:\n",
+#     print "gene:", g.eval(df)
+    print
+    print "prefix:", g2.eval(df)            
 
      
 if __name__ == '__main__':

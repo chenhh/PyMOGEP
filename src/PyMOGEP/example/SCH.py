@@ -19,6 +19,7 @@ optimal solution: x in [0, 2]
 
 from PyMOGEP.chromosome import Chromosome
 from PyMOGEP.population import Population
+from PyMOGEP.gene import PrefixGene
 from PyMOGEP.function.arithmetic import *
 from PyMOGEP.evolution.linker import *
 import pandas as pd
@@ -62,25 +63,55 @@ class SymbolicRegression(Chromosome):
         '''termination condition'''
         return False
     
+class PrefixSymbolicRegression(Chromosome):
 
-def GEPAlgorithm(generations=10, popSize=500, 
-                 headLength=4, n_genes=2):
-    df = Dataset(100)
+    functions = op_add, op_multiply, op_substract
+    terminals = 'x',
+    gene_type =  PrefixGene
+
+    def _fitnesses(self):
+        '''fitness function'''
+
+        # Evaluation of this chromosome
+        guess = self.eval(Population.df)
+
+        try:
+            error = ( np.sum(np.abs(guess[0] - Population.df['f1'])),
+                      np.sum(np.abs(guess[1] - Population.df['f2']))
+                      )
+            return error
+        
+        except Exception:
+            return (float('inf'), float('inf'))
+        
+    def _solved(self):
+        '''termination condition'''
+        return False
+
+
+def GEPAlgorithm(generations=10, popSize=50, 
+                 headLength=4, n_genes=2, chro=SymbolicRegression):
+    df = Dataset(3)
     t0 = time()
  
     Population.df = df
-    p = Population(SymbolicRegression, popSize, headLength, n_genes,
+    pop = Population(chro, popSize, headLength, n_genes,
                    n_elites=2, RNCGenerator=np.random.randn, verbose=False)
-    p.solve(generations)
+    pop.solve(generations)
          
     #print final result
     print "best Pareto front:", 
-    for chro in p.bestFront:
+    for chro in pop.bestFront:
         print "fitness:%s"%(chro.fitnesses,)
         print chro
     print "%.3f secs"%(time()-t0)
 
 if __name__ == '__main__':
 #    import cProfile
-#    cProfile.run('GEPAlgorithm()')  
-    GEPAlgorithm()
+#    cProfile.run('GEPAlgorithm()')
+#     chro = SymbolicRegression  
+#     GEPAlgorithm(chro=chro)
+#     print
+#     print
+    chro = PrefixSymbolicRegression
+    GEPAlgorithm(chro=chro)
