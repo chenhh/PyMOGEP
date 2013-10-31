@@ -179,10 +179,10 @@ class Chromosome(object):
     def __repr__(self):
         '''@return: repr of chromosome alleles'''
         
-        chro_str = 'ID:[%s]:%s genes:%s'%(
+        chro_str = 'ID[%s]:%s\n%s'%(
             self.chromosomeID,
             ''.join(repr(g) for  g in self.genes),
-            ''.join("[%s]:%s "%(idx, g.evalRepr) 
+            ''.join("genes[%s]:%s\n"%(idx, g.evalRepr) 
                                 for idx, g in enumerate(self.genes))
             )
         return chro_str

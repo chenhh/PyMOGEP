@@ -223,10 +223,14 @@ class Population(object):
             idx += 1
         self._crowdingDistanceAssignment(mixedParetoFronts[idx])
 
-        #fullfill the popSize
-        mixedParetoFronts[idx].sort(cmp=partialOrder, reverse=True)
-        reminderLength = self.popSize - len(self._nextPopulation)
-        self._nextPopulation.extend(mixedParetoFronts[idx][:reminderLength])
+        if len(self._nextPopulation) > self.popSize:
+            self._nextPopulation = self._nextPopulation[:self.popSize]
+        
+        if len(self._nextPopulation) < self.popSize:
+            #fullfill the popSize
+            mixedParetoFronts[idx].sort(cmp=partialOrder, reverse=True)
+            reminderLength = self.popSize - len(self._nextPopulation)
+            self._nextPopulation.extend(mixedParetoFronts[idx][:reminderLength])
         
         assert len(self._nextPopulation) == self.popSize
 
@@ -251,9 +255,10 @@ class Population(object):
             if len(self.bestFront) > 0 and all(chro.solved for chro in self.bestFront):
                 break
             
-            print "Generation:[%s] %.3f secs, Best Pareto front size:%s:"%(
+            print "Generation[%s] %.3f secs, Best Pareto front size:%s"%(
                     self.gen, time()-t0, len(self.bestFront))
             
-            for chro in self.bestFront:
-                print  "1st rank:", chro.fitnesses
+            if self.verbose:
+                for chro in self.bestFront:
+                    print  "1st rank:", chro.fitnesses
         
