@@ -6,6 +6,11 @@
 
 C. Ferreira, "Gene Expression Programming: A New Adaptive Algorithm for 
 Solving Problems.," Complex Systems, vol. 13, pp. 87-129, 2001.
+
+prefix gene:
+Xin Li, Chi Zhou, Weimin Xiao, and Peter C. Nelson. "Prefix Gene Expression 
+Programming". Late Breaking Paper at the Genetic and Evolutionary Computation 
+Conference(GECCO-2005), Washington, D.C., 2005.
 '''
 import copy
 import random
@@ -76,6 +81,10 @@ class Gene(object):
         attribute.
         we memory the evaluted the results in its attributes.
         alleles: [+, x, +, y, x ]
+        => 
+        1.  +
+        2. x +
+        3.  y x
         
         @param df, pandas.DataFrame, user specified data set
         @return, numpy.array, results of evaluating the gene.
@@ -185,7 +194,6 @@ class Gene(object):
         '''@return: number of alleles in the gene'''
         return len(self.alleles)
     
-    
     def __iter__(self):
         '''@return: iterator over gene alleles'''
         return iter(self.alleles)
@@ -194,22 +202,71 @@ class Gene(object):
         '''@return: an individual allele from the gene'''
         return self.alleles[idx]
 
+
+
+class PrefixGene(Gene):
+    '''
+    the eval length is the same with gene, because both the parsed trees
+    have the same number of internal (function) node except 
+    these functions are in different locations in the trees.
+    '''
+    
+    def __init__(self, alleles, headLength, RNCGenerator=None ):
+        super(PrefixGene, self).__init__(alleles, headLength, RNCGenerator)
+        
+    def eval(self, df):
+        '''
+        alleles: [+, x, +, y, x ]
+        '''
+        self._evalLength()
+        
+        evalStack = []
+        
+        arity, varCount = [], 0
+        for idx, allele in enumerate(self._evalAlleles):
+            if callable(allele):
+                #allele is a function
+                arity.append(allele.func_code.co_argcount)
+                evalStack.append(allele)
+            
+            if isinstance(allele, str):
+                #allele is a variable 
+                if allele != '?':
+                    allele = df[allele]
+                else:
+                    allele = self.Dc[idx - self.headLength - 1]
+                varCount += 1
+                evalStack.append(allele)
+        
+            while varCount == arity[-1]:
+                operands = [evalStack.pop() for _ in xrange(arity)]
+                operator = evalStack.pop()
+                evalStack.append(operator(*operands))
+                
+                #use two variables to get a value
+                varCount = varCount - len(operands) + 1
+                arity.pop() 
+                
+
 def testGene():
     import pandas as pd
-    from PyMOGEP.function.arithmetic import (
-            op_add, op_substract, op_multiply, op_divide)
-    g = Gene([ op_substract, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
-    print g
-    print g.evalRepr
-    print g.evalLength
-    print g[:3]
-    print g[:3][:2]
-
-    x = [1,2,3]
-    y = [4,5,6]
-    df = pd.DataFrame.from_dict({"x": x, "y": y})
-    print "df:\n", df
-    print "eval:\n",g.eval(df)
+    from PyMOGEP.function.arithmetic import *
+    from PyMOGEP.function.power import *
+    expr = [op_root, op_multiply, op_substract, op_add, 'x', 'x', 'y', 'y' ]
     
+    g = Gene([ op_substract, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
+    g2 = PrefixGene([ op_substract, 'y', op_add, 'x', 'x', 'x', 'x'], 3)
+    print "Gene:%s, prefix: %s"%(g, g2)
+    print "eval Gene:%s, prefix: %s"%(g.evalRepr, g2.evalRepr)
+    print g.evalLength, g2.evalLength
+  
+
+#     x = [1,2,3]
+#     y = [4,5,6]
+#     df = pd.DataFrame.from_dict({"x": x, "y": y})
+#     print "df:\n", df
+#     print "eval:\n",g.eval(df)            
+
+     
 if __name__ == '__main__':
     testGene()
