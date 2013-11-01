@@ -89,14 +89,14 @@ class PrefixSymbolicRegression(Chromosome):
         return False
 
 
-def GEPAlgorithm(generations=10, popSize=50, 
+def GEPAlgorithm(generations=10, popSize=500, 
                  headLength=4, n_genes=2, chro=SymbolicRegression):
-    df = Dataset(3)
+    df = Dataset(1000)
     t0 = time()
  
     Population.df = df
     pop = Population(chro, popSize, headLength, n_genes,
-                   n_elites=2, RNCGenerator=np.random.randn, verbose=False)
+                   n_elites=1, RNCGenerator=np.random.randn, verbose=False)
     pop.solve(generations)
          
     #print final result
@@ -109,9 +109,8 @@ def GEPAlgorithm(generations=10, popSize=50,
 if __name__ == '__main__':
 #    import cProfile
 #    cProfile.run('GEPAlgorithm()')
-#     chro = SymbolicRegression  
-#     GEPAlgorithm(chro=chro)
-#     print
-#     print
-    chro = PrefixSymbolicRegression
+    chro = SymbolicRegression  
     GEPAlgorithm(chro=chro)
+
+#     chro = PrefixSymbolicRegression
+#     GEPAlgorithm(chro=chro)

@@ -219,3 +219,5 @@ class Chromosome(object):
         @return: boolean indicating optimal solution found
         '''
         return False
+
+

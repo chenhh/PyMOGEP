@@ -125,7 +125,6 @@ class Gene(object):
         '''
         new = None   # new gene
         same = True  # whether or not the evaluate region is the same
-        
         for idx, alleles in changes:
             length = len(alleles)
             if self[idx: idx + length] != alleles:
@@ -143,11 +142,13 @@ class Gene(object):
         if not new:
             return self
         
-        # the gene is changed, and it modifies the evaluate region
         if not same:
+            # the gene is changed, and it modifies the evaluate region
             gene = type(self) (new, self.headLength, self.RNCGenerator)
-        # the gene is changed, but it not modifies the evaluate region
+        
         else:
+            # the gene is changed, but it not modifies the evaluate region
+            #don't need to re-evalute the fitness value
             gene = copy.copy(self)
             gene.alleles = new
             
@@ -157,7 +158,7 @@ class Gene(object):
                 delattr(gene, "___repr___cache")
             except AttributeError:
                 pass
-        
+    
         return gene
     
     @cache
@@ -189,6 +190,9 @@ class Gene(object):
                 self.evalRepr = gene_str
         return gene_str
     
+    def infix(self):
+        '''@return infix represention of the gene'''
+        
         
     def __len__(self):
         '''@return: number of alleles in the gene'''
@@ -213,7 +217,8 @@ class PrefixGene(Gene):
     
     def __init__(self, alleles, headLength, RNCGenerator=None ):
         super(PrefixGene, self).__init__(alleles, headLength, RNCGenerator)
-        
+    
+    
     def eval(self, df):
         '''prefix order to parse the chromsome'''
         self._evalLength()
@@ -254,7 +259,7 @@ class PrefixGene(Gene):
             if not arity:
                 assert len(evalStack) == 1
                 return evalStack[0]   
-                
+
 
 def testGene():
     import pandas as pd
@@ -262,21 +267,26 @@ def testGene():
     from PyMOGEP.function.arithmetic import *
     from PyMOGEP.function.power import *
 #     expr = [op_root, op_multiply, op_substract, op_add, 'x', 'x', 'y', 'y' ]
-    expr = [op_substract, op_multiply, 'x', op_multiply, 'x', 'y', 'x']
-#     g = Gene(expr, 4)
+    expr = [op_substract, op_multiply, 'x', op_multiply, 'x', 'y', 'x', 'z','z']
+    g = Gene(expr, 4)
     g2 = PrefixGene(expr, 4, RNCGenerator=np.random.randn)
-#     print "Gene:%s, prefix: %s"%(g, g2)
+    print "Gene:%s, prefix: %s"%(g, g2)
+    print "eval Gene: %s"%(g.evalRepr)
+    
+    newg = g.modify([(7, ['z', 'x'])])
+    print "new Gene:%s",newg
+    
 #     print "eval Gene:%s, prefix: %s"%(g.evalRepr, g2.evalRepr)
   
 
-    x = [3.,6.,9.]
-    y = [4.,5.,6.]
-    df = pd.DataFrame.from_dict({"x": x, "y": y}, dtype=np.float)
-    print "df:\n", df
-    print "eval:\n",
-#     print "gene:", g.eval(df)
-    print
-    print "prefix:", g2.eval(df)            
+#     x = [3.,6.,9.]
+#     y = [4.,5.,6.]
+#     df = pd.DataFrame.from_dict({"x": x, "y": y}, dtype=np.float)
+#     print "df:\n", df
+#     print "eval:\n",
+# #     print "gene:", g.eval(df)
+#     print
+#     print "prefix:", g2.eval(df)            
 
      
 if __name__ == '__main__':
