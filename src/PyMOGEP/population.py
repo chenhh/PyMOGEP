@@ -42,7 +42,8 @@ class Population(object):
     )
 
     def __init__(self, chro, popSize, headLength, n_genes=1, n_elites=1,
-                 linker=defaultLinker, RNCGenerator=None, verbose=False):
+                 linker=defaultLinker, RNCGenerator=None, 
+                 defaultChro=None, verbose=False):
         '''
         @param chro, PyMOGEP.chromosome, user defined chromosome
         @param popSize, positive integer, population size
@@ -53,6 +54,8 @@ class Population(object):
         @param linker, PyMOGEP.evolution.linker, 
                        linker function for connecting genes
         @param RNCGenerator, random number generator for RNC algorithm
+        @param defaultChro, PyMOGEP.chromosome, user specified chromsome
+                            instanace
         '''
         assert popSize > 0 and headLength > 0 and n_genes > 0
         self.popSize = popSize
@@ -62,11 +65,16 @@ class Population(object):
         self.linker = linker
         self._gen = 0
         self.selector = binaryTournamentSelection
-        self.RNCGenerator = RNCGenerator
+        self.RNCGenerator = RNCGenerator    
         self.verbose = verbose
         
         #population initialization, each chromosome with different fitness values.
-        self.population = []
+        if defaultChro:
+            assert all(type(defChro) == type(chro) for defChro in defaultChro)
+            self.population = defaultChro
+        else:
+            self.population = []
+            
         t0 = time()
         fitness_set = set()
         while len(self.population) < popSize:
