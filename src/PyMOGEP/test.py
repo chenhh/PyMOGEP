@@ -1,7 +1,7 @@
 '''
 Created on 2013/10/24
 
-@author: chenhh
+@author: Hung-Hsin Chen
 '''
 
 from PyMOGEP.function.arithmetic import (op_add, op_substract)
