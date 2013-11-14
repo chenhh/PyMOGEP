@@ -79,18 +79,18 @@ class Population(object):
         fitness_set = set()
         while len(self.population) < popSize:
             chro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
-            print chro.fitnesses
             if chro.fitnesses not in fitness_set:
                 fitness_set.add(chro.fitnesses)
                 self.population.append(chro)
                 if self.verbose:
-                    print "%s random chromosome created"%(len(self.population))
+                    print "%s chromosome initialized, fitnesses:%s"%(
+                                    len(self.population), chro.fitnesses)
         
         if self.verbose:
             for chro in self.population:
                 print "ID:[%s], fitnesses:%s"%(chro.chromosomeID, chro.fitnesses)
                 print chro
-            print "random population initialized, %.3f secs"%(time() - t0)
+            print "random chromosome initialized, %.3f secs"%(time() - t0)
         
         # placeholder for next generation
         self._nextPopulation = [] 
