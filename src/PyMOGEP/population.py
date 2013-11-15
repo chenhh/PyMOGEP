@@ -78,7 +78,6 @@ class Population(object):
             
         t0 = time()
         fitness_set = set()
-        
         while len(self.population) < popSize:
             chro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
             if chro.fitnesses not in fitness_set:
