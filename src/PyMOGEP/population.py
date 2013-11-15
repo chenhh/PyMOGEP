@@ -77,15 +77,7 @@ class Population(object):
             self.population = []
             
         t0 = time()
-        #force add buy-hold rule
-        
-        BHRuleChro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
-        BHRuleChro.genes[0][0] = 999999.0
-        BHRuleChro.genes[1][0] = -999999.0
-
-        fitness_set = set(BHRuleChro.fitnesses)
-        if self.verbose:
-            print "add bhrule, fitnesses:%s"%(BHRuleChro.fitnesses)
+        fitness_set = set()
         
         while len(self.population) < popSize:
             chro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
