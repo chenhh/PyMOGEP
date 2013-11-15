@@ -10,6 +10,7 @@ multi-objective algorithm: NSGA-II
 
 from time import time
 import random
+import numpy as np
 from PyMOGEP.evolution.linker import defaultLinker
 from PyMOGEP.sort import (JensenSort, DebSort)
 from PyMOGEP.evolution.selector import binaryTournamentSelection
@@ -76,7 +77,16 @@ class Population(object):
             self.population = []
             
         t0 = time()
-        fitness_set = set()
+        #force add buy-hold rule
+        
+        BHRuleChro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
+        BHRuleChro.genes[0][0] = 999999.0
+        BHRuleChro.genes[1][0] = -999999.0
+
+        fitness_set = set(BHRuleChro.fitnesses)
+        if self.verbose:
+            print "add bhrule, fitnesses:%s"%(BHRuleChro.fitnesses)
+        
         while len(self.population) < popSize:
             chro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
             if chro.fitnesses not in fitness_set:
