@@ -35,7 +35,7 @@ class Population(object):
     crossoverGeneRate = 0.1
     df = None   #data frame
     
-    gen = property(lambda self: self._gen, doc='Generation')
+    gen = property(lambda self: self._generation, doc='Generation')
     bestFront = property(
         lambda self: self.ParetoFronts[0],
         doc='The best Pareto front'
@@ -63,7 +63,7 @@ class Population(object):
         self.n_genes = n_genes
         self.n_elites = n_elites
         self.linker = linker
-        self._gen = 0
+        self._generation = 0
         self.selector = binaryTournamentSelection
         self.RNCGenerator = RNCGenerator    
         self.verbose = verbose
@@ -226,7 +226,8 @@ class Population(object):
                 self._crowdingDistanceAssignment(mixedParetoFronts[idx])
             )
         
-        idx = self.n_elites 
+        idx = self.n_elites
+        print "mixParetoFront:", mixedParetoFronts 
         while (len(self._nextPopulation) + len(mixedParetoFronts[idx])) <= self.popSize:
             self._nextPopulation.extend(
                     self._crowdingDistanceAssignment(mixedParetoFronts[idx])
@@ -251,7 +252,7 @@ class Population(object):
         [self._crowdingDistanceAssignment(front) for front in self.ParetoFronts]
         
         # update information
-        self._gen += 1
+        self._generation += 1
      
  
     def solve(self, n_generation):
@@ -266,8 +267,8 @@ class Population(object):
             if len(self.bestFront) > 0 and all(chro.solved for chro in self.bestFront):
                 break
             
-            print "Generation[%s] %.3f secs, Best Pareto front size:%s"%(
-                    self.gen, time()-t0, len(self.bestFront))
+            print "Generation[%s], %.3f secs, Best Pareto front size: %s"%(
+                    self._generation, time()-t0, len(self.bestFront))
             
             if self.verbose:
                 for chro in self.bestFront:
