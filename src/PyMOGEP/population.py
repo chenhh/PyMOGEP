@@ -220,29 +220,31 @@ class Population(object):
         # fill out the next population set
         self._nextPopulation = []
         
-        #preserve elite Pareto front
+        #preserve the elite Pareto front
         for idx in xrange(self.n_elites):
             self._nextPopulation.extend(
                 self._crowdingDistanceAssignment(mixedParetoFronts[idx])
             )
         
-        idx = self.n_elites
-        print "mixParetoFront:", mixedParetoFronts 
-        while (len(self._nextPopulation) + len(mixedParetoFronts[idx])) <= self.popSize:
-            self._nextPopulation.extend(
-                    self._crowdingDistanceAssignment(mixedParetoFronts[idx])
-                    )
-            idx += 1
-        self._crowdingDistanceAssignment(mixedParetoFronts[idx])
-
+        #the n_rank in Pareto may less than n_elite 
+        if len(mixedParetoFronts) > self.n_elites:
+            idx = self.n_elites
+       
+            while (len(self._nextPopulation) + len(mixedParetoFronts[idx])) <= self.popSize:
+                self._nextPopulation.extend(
+                        self._crowdingDistanceAssignment(mixedParetoFronts[idx])
+                        )
+                idx += 1
+            self._crowdingDistanceAssignment(mixedParetoFronts[idx])
+    
+            if len(self._nextPopulation) < self.popSize:
+                #fullfill the popSize
+                mixedParetoFronts[idx].sort(cmp=partialOrder, reverse=True)
+                reminderLength = self.popSize - len(self._nextPopulation)
+                self._nextPopulation.extend(mixedParetoFronts[idx][:reminderLength])
+        
         if len(self._nextPopulation) > self.popSize:
             self._nextPopulation = self._nextPopulation[:self.popSize]
-        
-        if len(self._nextPopulation) < self.popSize:
-            #fullfill the popSize
-            mixedParetoFronts[idx].sort(cmp=partialOrder, reverse=True)
-            reminderLength = self.popSize - len(self._nextPopulation)
-            self._nextPopulation.extend(mixedParetoFronts[idx][:reminderLength])
         
         assert len(self._nextPopulation) == self.popSize
 
