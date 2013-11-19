@@ -10,6 +10,7 @@ multi-objective algorithm: NSGA-II
 
 from time import time
 import random
+import numpy as np
 from PyMOGEP.evolution.linker import defaultLinker
 from PyMOGEP.sort import (JensenSort, DebSort)
 from PyMOGEP.evolution.selector import binaryTournamentSelection
@@ -35,7 +36,7 @@ class Population(object):
     crossoverGeneRate = 0.1
     df = None   #data frame
     
-    gen = property(lambda self: self._gen, doc='Generation')
+    gen = property(lambda self: self._generation, doc='Generation')
     bestFront = property(
         lambda self: self.ParetoFronts[0],
         doc='The best Pareto front'
@@ -63,7 +64,7 @@ class Population(object):
         self.n_genes = n_genes
         self.n_elites = n_elites
         self.linker = linker
-        self._gen = 0
+        self._generation = 0
         self.selector = binaryTournamentSelection
         self.RNCGenerator = RNCGenerator    
         self.verbose = verbose
@@ -82,12 +83,15 @@ class Population(object):
             if chro.fitnesses not in fitness_set:
                 fitness_set.add(chro.fitnesses)
                 self.population.append(chro)
+                if self.verbose:
+                    print "%s chromosome initialized, fitnesses:%s"%(
+                                    len(self.population), chro.fitnesses)
         
         if self.verbose:
             for chro in self.population:
                 print "ID:[%s], fitnesses:%s"%(chro.chromosomeID, chro.fitnesses)
                 print chro
-            print "random population initialized, %.3f secs"%(time() - t0)
+            print "random chromosome initialized, %.3f secs"%(time() - t0)
         
         # placeholder for next generation
         self._nextPopulation = [] 
@@ -217,28 +221,31 @@ class Population(object):
         # fill out the next population set
         self._nextPopulation = []
         
-        #preserve elite Pareto front
+        #preserve the elite Pareto front
         for idx in xrange(self.n_elites):
             self._nextPopulation.extend(
                 self._crowdingDistanceAssignment(mixedParetoFronts[idx])
             )
         
-        idx = self.n_elites 
-        while (len(self._nextPopulation) + len(mixedParetoFronts[idx])) <= self.popSize:
-            self._nextPopulation.extend(
-                    self._crowdingDistanceAssignment(mixedParetoFronts[idx])
-                    )
-            idx += 1
-        self._crowdingDistanceAssignment(mixedParetoFronts[idx])
-
+        #the n_rank in Pareto may less than n_elite 
+        if len(mixedParetoFronts) > self.n_elites:
+            idx = self.n_elites
+       
+            while (len(self._nextPopulation) + len(mixedParetoFronts[idx])) <= self.popSize:
+                self._nextPopulation.extend(
+                        self._crowdingDistanceAssignment(mixedParetoFronts[idx])
+                        )
+                idx += 1
+            self._crowdingDistanceAssignment(mixedParetoFronts[idx])
+    
+            if len(self._nextPopulation) < self.popSize:
+                #fullfill the popSize
+                mixedParetoFronts[idx].sort(cmp=partialOrder, reverse=True)
+                reminderLength = self.popSize - len(self._nextPopulation)
+                self._nextPopulation.extend(mixedParetoFronts[idx][:reminderLength])
+        
         if len(self._nextPopulation) > self.popSize:
             self._nextPopulation = self._nextPopulation[:self.popSize]
-        
-        if len(self._nextPopulation) < self.popSize:
-            #fullfill the popSize
-            mixedParetoFronts[idx].sort(cmp=partialOrder, reverse=True)
-            reminderLength = self.popSize - len(self._nextPopulation)
-            self._nextPopulation.extend(mixedParetoFronts[idx][:reminderLength])
         
         assert len(self._nextPopulation) == self.popSize
 
@@ -248,7 +255,7 @@ class Population(object):
         [self._crowdingDistanceAssignment(front) for front in self.ParetoFronts]
         
         # update information
-        self._gen += 1
+        self._generation += 1
      
  
     def solve(self, n_generation):
@@ -263,8 +270,8 @@ class Population(object):
             if len(self.bestFront) > 0 and all(chro.solved for chro in self.bestFront):
                 break
             
-            print "Generation[%s] %.3f secs, Best Pareto front size:%s"%(
-                    self.gen, time()-t0, len(self.bestFront))
+            print "Generation[%s], %.3f secs, Best Pareto front size: %s"%(
+                    self._generation, time()-t0, len(self.bestFront))
             
             if self.verbose:
                 for chro in self.bestFront:

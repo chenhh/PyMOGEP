@@ -206,6 +206,9 @@ class Gene(object):
         '''@return: an individual allele from the gene'''
         return self.alleles[idx]
 
+    def __setitem__(self, idx, value):
+        '''set idx-th element as vale'''
+        self.modify([ [idx, [value,] ]])
 
 
 class PrefixGene(Gene):
