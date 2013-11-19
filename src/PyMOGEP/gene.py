@@ -13,7 +13,7 @@ Programming". Late Breaking Paper at the Genetic and Evolutionary Computation
 Conference(GECCO-2005), Washington, D.C., 2005.
 '''
 import copy
-import random
+import numpy as np
 from PyMOGEP.decorator import cache
 
 class Gene(object):
@@ -101,7 +101,11 @@ class Gene(object):
                     self._evalAlleles[idx] = df[allele]
                 else:
                     self._evalAlleles[idx] = self.Dc[idx - self.headLength - 1]
-                    
+            
+            #allele is a value
+            if isinstance(allele, float) or isinstance(allele, int):
+                self._evalAlleles[idx] = np.repeat(float(allele), df.index.size) 
+            
             # if allele is a function
             if callable(allele):
                 arity = allele.func_code.co_argcount
@@ -229,6 +233,7 @@ class PrefixGene(Gene):
         evalStack = []
         arity, argCount = [], 0
         for idx, allele in enumerate(self._evalAlleles):
+            
             if callable(allele):
                 #allele is a function
                 arity.append(allele.func_code.co_argcount)
@@ -241,6 +246,12 @@ class PrefixGene(Gene):
                     allele = df[allele]
                 else:
                     allele = self.Dc[idx - self.headLength - 1]
+                argCount += 1
+                evalStack.append(allele)
+        
+            elif isinstance(allele, int) or isinstance(allele, float):
+                #allele is a value
+                allele = np.repeat(float(allele), df.index.size)
                 argCount += 1
                 evalStack.append(allele)
         
