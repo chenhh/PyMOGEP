@@ -194,8 +194,11 @@ class Chromosome(object):
         @param genes: ordered list of GEP genes
         @return: a child chromosome of self
         '''
-        return self if genes == self.genes \
-            else type(self)(genes, self.headLength, self.linker, self.RNCGenerator)
+        if genes == self.genes: 
+            return self
+        else:
+            return  type(self)(genes, self.headLength, 
+                               self.linker, self.RNCGenerator)
 
 
     def eval(self, df):
