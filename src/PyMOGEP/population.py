@@ -34,7 +34,8 @@ class Population(object):
     crossoverOnePointRate = 0.3
     crossoverTwoPointsRate = 0.3
     crossoverGeneRate = 0.1
-    df = None   #data frame
+    train_df = None   #data frame
+    valid_df = None
     
     gen = property(lambda self: self._generation, doc='Generation')
     bestFront = property(
