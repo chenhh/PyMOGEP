@@ -84,9 +84,11 @@ class Population(object):
             if chro.fitnesses not in fitness_set:
                 fitness_set.add(chro.fitnesses)
                 self.population.append(chro)
-                if self.verbose:
-                    print "%s chromosome initialized, fitnesses:%s"%(
-                                    len(self.population), chro.fitnesses)
+#                 if self.verbose:
+                print "train:%s-%s, %s chromosome initialized, fitnesses:%s"%(
+                        type(self).train_df.index[0],
+                        type(self).train_df.index[-1],
+                        len(self.population), chro.fitnesses)
         
         if self.verbose:
             for chro in self.population:
