@@ -45,7 +45,7 @@ class Population(object):
 
     def __init__(self, chro, popSize, headLength, n_genes=1, n_elites=1,
                  linker=defaultLinker, RNCGenerator=None, 
-                 defaultChro=None, verbose=False):
+                 defaultChro=None, nonDuplicatePop=True, verbose=False):
         '''
         @param chro, PyMOGEP.chromosome, user defined chromosome
         @param popSize, positive integer, population size
@@ -58,6 +58,8 @@ class Population(object):
         @param RNCGenerator, random number generator for RNC algorithm
         @param defaultChro, PyMOGEP.chromosome, user specified chromsome
                             instanace
+        @param nonDuplicatePop, boolean, initialize non-duplicate fitness
+                            population
         '''
         assert popSize > 0 and headLength > 0 and n_genes > 0
         self.popSize = popSize
@@ -78,23 +80,26 @@ class Population(object):
             self.population = []
             
         t0 = time()
+        
         fitness_set = set()
         while len(self.population) < popSize:
             chro = chro.randomChromosome(headLength, n_genes, linker, self.RNCGenerator)
-            if chro.fitnesses not in fitness_set:
-                fitness_set.add(chro.fitnesses)
+            if nonDuplicatePop:
+                if chro.fitnesses not in fitness_set:
+                    fitness_set.add(chro.fitnesses)
+                    self.population.append(chro)
+            else:
                 self.population.append(chro)
-#                 if self.verbose:
-                print "train:%s-%s, %s chromosome initialized, fitnesses:%s"%(
-                        type(self).train_df.index[0],
-                        type(self).train_df.index[-1],
-                        len(self.population), chro.fitnesses)
+            print "train:%s-%s, %s chromosome initialized, fitnesses:%s"%(
+                    type(self).train_df.index[0],
+                    type(self).train_df.index[-1],
+                    len(self.population), chro.fitnesses)
         
         if self.verbose:
             for chro in self.population:
                 print "ID:[%s], fitnesses:%s"%(chro.chromosomeID, chro.fitnesses)
                 print chro
-            print "random chromosome initialized, %.3f secs"%(time() - t0)
+            print "nonduplicate random chromosome initialized, %.3f secs"%(time() - t0)
         
         # placeholder for next generation
         self._nextPopulation = [] 
