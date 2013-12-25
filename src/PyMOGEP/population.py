@@ -90,10 +90,11 @@ class Population(object):
                     self.population.append(chro)
             else:
                 self.population.append(chro)
-            print "train:%s-%s, %s chromosome initialized, fitnesses:%s"%(
-                    type(self).train_df.index[0],
-                    type(self).train_df.index[-1],
-                    len(self.population), chro.fitnesses)
+                if verbose:
+                    print "train:%s-%s, %s chromosome initialized, fitnesses:%s"%(
+                        type(self).train_df.index[0],
+                        type(self).train_df.index[-1],
+                        len(self.population), chro.fitnesses)
         
         if self.verbose:
             for chro in self.population:
