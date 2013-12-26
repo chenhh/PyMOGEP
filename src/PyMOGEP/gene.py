@@ -89,9 +89,12 @@ class Gene(object):
         @param df, pandas.DataFrame, user specified data set
         @return, numpy.array, results of evaluating the gene.
         '''
-        self._evalLength()
-
-        jdx = self.evalLength
+        if self.evalLength == 0:
+            self._evalLength()
+        else:
+            jdx = self.evalLength
+            self._evalAlleles = self.alleles[:self.evalLength]
+            
         for idx in reversed(xrange(jdx)):
             
             allele = self._evalAlleles[idx]
